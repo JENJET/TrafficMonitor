@@ -46,6 +46,11 @@ namespace OpenHardwareMonitorApi
         return error_message;
     }
 
+    float COpenHardwareMonitor::CpuPower()
+    {
+        return m_cpu_power;
+    }
+
     float COpenHardwareMonitor::CpuTemperature()
     {
         return m_cpu_temperature;
@@ -160,6 +165,65 @@ namespace OpenHardwareMonitorApi
         return false;
     }
 
+    bool COpenHardwareMonitor::GetCpuPower(IHardware^ hardware, float& package_power)
+    {
+        package_power = -1;
+        float best_value = -1;
+        for (int i = 0; i < hardware->Sensors->Length; i++)
+        {
+            if (hardware->Sensors[i]->SensorType == SensorType::Power)
+            {
+                String^ name = hardware->Sensors[i]->Name;
+                float val = Convert::ToDouble(hardware->Sensors[i]->Value);
+                // Prefer sensors that mention "Package"
+                if (name != nullptr && name->Contains("Package"))
+                {
+                    package_power = val;
+                    return true;
+                }
+                if (val >= 0)
+                    best_value = val;
+            }
+        }
+        if (best_value >= 0)
+        {
+            package_power = best_value;
+            return true;
+        }
+        // search subhardware
+        for (int i = 0; i < hardware->SubHardware->Length; i++)
+        {
+            if (GetCpuPower(hardware->SubHardware[i], package_power))
+                return true;
+        }
+        return false;
+    }
+
+    bool COpenHardwareMonitor::GetCpuTemperature(IHardware^ hardware, float& temperature)
+    {
+        temperature = -1;
+        m_all_cpu_temperature.clear();
+        for (int i = 0; i < hardware->Sensors->Length; i++)
+        {
+            //找到温度传感器
+            if (hardware->Sensors[i]->SensorType == SensorType::Temperature)
+            {
+                String^ name = hardware->Sensors[i]->Name;
+                //保存每个CPU传感器的温度
+                m_all_cpu_temperature[ClrStringToStdWstring(name)] = Convert::ToDouble(hardware->Sensors[i]->Value);
+            }
+        }
+        //计算平均温度
+        if (!m_all_cpu_temperature.empty())
+        {
+            float sum{};
+            for (const auto& item : m_all_cpu_temperature)
+                sum += item.second;
+            temperature = sum / m_all_cpu_temperature.size();
+        }
+        return temperature > 0;
+    }
+
     bool COpenHardwareMonitor::GetHardwareTemperature(IHardware^ hardware, float& temperature)
     {
         temperature = -1;
@@ -209,31 +273,6 @@ namespace OpenHardwareMonitorApi
                 return true;
         }
         return false;
-    }
-
-    bool COpenHardwareMonitor::GetCpuTemperature(IHardware^ hardware, float& temperature)
-    {
-        temperature = -1;
-        m_all_cpu_temperature.clear();
-        for (int i = 0; i < hardware->Sensors->Length; i++)
-        {
-            //找到温度传感器
-            if (hardware->Sensors[i]->SensorType == SensorType::Temperature)
-            {
-                String^ name = hardware->Sensors[i]->Name;
-                //保存每个CPU传感器的温度
-                m_all_cpu_temperature[ClrStringToStdWstring(name)] = Convert::ToDouble(hardware->Sensors[i]->Value);
-            }
-        }
-        //计算平均温度
-        if (!m_all_cpu_temperature.empty())
-        {
-            float sum{};
-            for (const auto& item : m_all_cpu_temperature)
-                sum += item.second;
-            temperature = sum / m_all_cpu_temperature.size();
-        }
-        return temperature > 0;
     }
 
     bool COpenHardwareMonitor::GetGpuUsage(IHardware^ hardware, float& gpu_usage)
@@ -289,6 +328,7 @@ namespace OpenHardwareMonitorApi
 
     void COpenHardwareMonitor::ResetAllValues()
     {
+        m_cpu_power = -1;
         m_cpu_temperature = -1;
         m_gpu_nvidia_temperature = -1;
         m_gpu_ati_temperature = -1;
@@ -345,6 +385,8 @@ namespace OpenHardwareMonitorApi
                 switch (computer->Hardware[i]->HardwareType)
                 {
                 case HardwareType::Cpu:
+                    if (m_cpu_power < 0)
+						GetCpuPower(computer->Hardware[i], m_cpu_power);
                     if (m_cpu_temperature < 0)
                         GetCpuTemperature(computer->Hardware[i], m_cpu_temperature);
                     if (m_cpu_freq < 0)

@@ -359,6 +359,19 @@ CString CCommon::TemperatureToString(float temperature, const PublicSettingData&
     return str_val;
 }
 
+CString CCommon::PowerToString(float power, const PublicSettingData& cfg)
+{
+    CString str_val;
+    if (power <= 0)
+        str_val = _T("--");
+    else
+        str_val.Format(_T("%.1f"), power);
+    if (cfg.separate_value_unit_with_space)
+        str_val += _T(' ');
+    str_val += _T("W");
+    return str_val;
+}
+
 CString CCommon::UsageToString(int usage, const PublicSettingData& cfg)
 {
     CString str_val;

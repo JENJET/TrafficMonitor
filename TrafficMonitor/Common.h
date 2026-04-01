@@ -58,6 +58,8 @@ public:
 
     //将温度信息转换成字符串
     static CString TemperatureToString(float temperature, const PublicSettingData& cfg);
+    //将功率信息转换成字符串
+    static CString PowerToString(float power, const PublicSettingData& cfg);
 
     //将使用率转换成字符串
     static CString UsageToString(int usage, const PublicSettingData& cfg);

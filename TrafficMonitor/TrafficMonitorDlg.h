@@ -199,7 +199,7 @@ protected:
 
 public:
     //void ApplySettings();
-    bool IsTemperatureNeeded() const;       //判断是否需要显示温度信息
+    bool IsHardwareMonitorNeeded() const;       //判断是否需要显示从硬件获取的相关信息
 
 protected:
     // 生成的消息映射函数

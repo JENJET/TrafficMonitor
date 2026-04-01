@@ -18,6 +18,7 @@ namespace OpenHardwareMonitorApi {
         virtual ~COpenHardwareMonitor();
 
         virtual void GetHardwareInfo() override;
+        virtual float CpuPower() override;
         virtual float CpuTemperature() override;
         virtual float GpuTemperature() override;
         virtual float HDDTemperature() override;
@@ -35,8 +36,9 @@ namespace OpenHardwareMonitorApi {
         virtual void SetMainboardEnable(bool enable) override;
 
     private:
-        bool GetHardwareTemperature(IHardware^ hardware, float& temperature);
+        bool GetCpuPower(IHardware^ hardware, float& package_power);
         bool GetCpuTemperature(IHardware^ hardware, float& temperature);
+        bool GetHardwareTemperature(IHardware^ hardware, float& temperature);
         bool GetGpuUsage(IHardware^ hardware, float& gpu_usage);
         bool GetHddUsage(IHardware^ hardware, float& hdd_usage);
         bool GetCPUFreq(IHardware^ hardware, float& freq);
@@ -46,6 +48,7 @@ namespace OpenHardwareMonitorApi {
         static void InsertValueToMap(std::map<std::wstring, float>& value_map, const std::wstring& key, float value);
 
     private:
+        float m_cpu_power{};
         float m_cpu_temperature{};
         float m_gpu_nvidia_temperature{};
         float m_gpu_ati_temperature{};

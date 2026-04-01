@@ -350,6 +350,7 @@ public:
         MI_CPU,                 /**< CPU利用率 */
         MI_MEMORY,              /**< 内存利用率 */
         MI_GPU_USAGE,           /**< 显卡利用率 */
+        MI_CPU_POWER,           /**< CPU功率 */
         MI_CPU_TEMP,            /**< CPU温度 */
         MI_GPU_TEMP,            /**< 显卡温度 */
         MI_HDD_TEMP,            /**< 硬盘温度 */

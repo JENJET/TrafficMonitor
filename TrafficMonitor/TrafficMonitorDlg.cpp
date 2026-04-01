@@ -23,7 +23,7 @@
 #define new DEBUG_NEW
 #endif
 
-
+static const std::wstring S_TOTAL_DISK_NAME = L"_Total";
 
 // CTrafficMonitorDlg 对话框
 
@@ -182,9 +182,14 @@ CString CTrafficMonitorDlg::GetMouseTipsInfo()
         temp.Format(_T("\r\n%s: %d %%"), CCommon::LoadText(IDS_GPU_USAGE), theApp.m_gpu_usage);
         tip_info += temp;
     }
-#ifndef WITHOUT_TEMPERATURE
-    if (IsTemperatureNeeded())
+#ifndef WITHOUT_HARDWAREMONITOR
+    if (IsHardwareMonitorNeeded())
     {
+        if (theApp.m_general_data.IsHardwareEnable(HI_CPU) && !skin_layout.GetItem(TDI_CPU_POWER).show && theApp.m_cpu_power > 0)
+        {
+            temp.Format(_T("\r\n%s: %s"), CCommon::LoadText(IDS_CPU_POWER), CCommon::PowerToString(theApp.m_cpu_power, theApp.m_main_wnd_data));
+            tip_info += temp;
+        }
         if (theApp.m_general_data.IsHardwareEnable(HI_CPU) && !skin_layout.GetItem(TDI_CPU_TEMP).show && theApp.m_cpu_temperature > 0)
         {
             temp.Format(_T("\r\n%s: %s"), CCommon::LoadText(IDS_CPU_TEMPERATURE), CCommon::TemperatureToString(theApp.m_cpu_temperature, theApp.m_main_wnd_data));
@@ -658,8 +663,10 @@ void CTrafficMonitorDlg::UpdateNotifyIconTip()
     strTip += CCommon::StringFormat(_T("\r\n<%1%>: <%2%>/s"), { CCommon::LoadText(IDS_DOWNLOAD), in_speed });
     strTip += CCommon::StringFormat(_T("\r\nCPU: <%1%> %"), { theApp.m_cpu_usage });
     strTip += CCommon::StringFormat(_T("\r\n<%1%>: <%2%> %"), { CCommon::LoadText(IDS_MEMORY), theApp.m_memory_usage });
-    if (IsTemperatureNeeded())
+    if (IsHardwareMonitorNeeded())
     {
+        if (theApp.m_general_data.IsHardwareEnable(HI_CPU) && theApp.m_cpu_power >= 0)
+            strTip += CCommon::StringFormat(_T("\r\n<%1%>: <%2%> %"), { CCommon::LoadText(IDS_CPU_POWER), theApp.m_cpu_power });
         if (theApp.m_general_data.IsHardwareEnable(HI_GPU) && theApp.m_gpu_usage >= 0)
             strTip += CCommon::StringFormat(_T("\r\n<%1%>: <%2%> %"), { CCommon::LoadText(IDS_GPU_USAGE), theApp.m_gpu_usage });
         if (theApp.m_general_data.IsHardwareEnable(HI_CPU) && theApp.m_cpu_temperature > 0)
@@ -802,7 +809,7 @@ void CTrafficMonitorDlg::ApplySettings(COptionsDlg& optionsDlg)
     //设置获取CPU利用率的方式
     m_cpu_usage_helper.SetUseCPUTimes(theApp.m_general_data.cpu_usage_acquire_method != GeneralSettingData::CA_PDH);
 
-#ifndef WITHOUT_TEMPERATURE
+#ifndef WITHOUT_HARDWAREMONITOR
     if (is_hardware_monitor_item_changed)
     {
         //如果关闭了硬件监控，则析构硬件监控类
@@ -815,7 +822,7 @@ void CTrafficMonitorDlg::ApplySettings(COptionsDlg& optionsDlg)
         {
             theApp.UpdateOpenHardwareMonitorEnableState();
         }
-        else if (IsTemperatureNeeded())
+        else if (IsHardwareMonitorNeeded())
         {
             theApp.InitOpenHardwareLibInThread();
         }
@@ -1002,10 +1009,10 @@ void CTrafficMonitorDlg::ApplySkin(int skin_index)
     theApp.SaveConfig();
 }
 
-bool CTrafficMonitorDlg::IsTemperatureNeeded() const
+bool CTrafficMonitorDlg::IsHardwareMonitorNeeded() const
 {
     //判断是否需要从OpenHardwareMonitor获取信息。
-    ////只有主窗口和任务栏窗口中CPU温度、显卡利用率、显卡温度、硬盘温度和主板温度中至少有一个要显示，才返回true
+    ////只有主窗口和任务栏窗口中CPU功率、CPU温度、显卡利用率、显卡温度、硬盘温度和主板温度中至少有一个要显示，才返回true
     //bool needed = false;
     //if (theApp.m_cfg_data.m_show_task_bar_wnd && IsTaskbarWndValid())
     //{
@@ -1348,7 +1355,7 @@ void CTrafficMonitorDlg::DoMonitorAcquisition()
     }
 
     bool lite_version = false;
-#ifdef WITHOUT_TEMPERATURE
+#ifdef WITHOUT_HARDWAREMONITOR
     lite_version = true;
 #endif
 
@@ -1383,14 +1390,20 @@ void CTrafficMonitorDlg::DoMonitorAcquisition()
     //获取硬盘利用率
     if (lite_version /*|| is_arm64ec*/ || !theApp.m_general_data.IsHardwareEnable(HI_HDD))
     {
-        int disk_index = m_disk_usage_helper.FindDiskIndex(theApp.m_general_data.hard_disk_name);
+        std::wstring disks_name = theApp.m_general_data.hard_disk_name;
+		std::wstring display_all_disks = std::wstring(CCommon::LoadText(IDS_ALL_DISKS));
+		if (disks_name == display_all_disks)
+        {
+            disks_name = S_TOTAL_DISK_NAME;
+        }
+        int disk_index = m_disk_usage_helper.FindDiskIndex(disks_name);
         //没有找到要监控的硬盘时默认使用总体利用率
         if (disk_index < 0)
         {
-            disk_index = m_disk_usage_helper.FindDiskIndex(L"_Total");
+            disk_index = m_disk_usage_helper.FindDiskIndex(S_TOTAL_DISK_NAME);
             if (disk_index >= 0)
             {
-                theApp.m_general_data.hard_disk_name = L"_Total";
+                theApp.m_general_data.hard_disk_name = display_all_disks;
             }
             //仍然没有找到使用第1块硬盘
             else
@@ -1417,9 +1430,9 @@ void CTrafficMonitorDlg::DoMonitorAcquisition()
     theApp.m_used_memory = static_cast<int>((statex.ullTotalPhys - statex.ullAvailPhys) / 1024);
     theApp.m_total_memory = static_cast<int>(statex.ullTotalPhys / 1024);
 
-#ifndef WITHOUT_TEMPERATURE
-    //获取温度
-    if (IsTemperatureNeeded() && theApp.m_pMonitor != nullptr)
+#ifndef WITHOUT_HARDWAREMONITOR
+    //获取硬件信息
+    if (IsHardwareMonitorNeeded() && theApp.m_pMonitor != nullptr)
     {
         CSingleLock sync(&theApp.m_minitor_lib_critical, TRUE);
         CString error_info = CCommon::LoadText(IDS_HARDWARE_INFO_ACQUIRE_FAILED_ERROR);
@@ -1451,6 +1464,8 @@ void CTrafficMonitorDlg::DoMonitorAcquisition()
             theApp.m_cpu_freq = theApp.m_pMonitor->CpuFreq();
         if (!cpu_usage_acquired)
             theApp.m_cpu_usage = theApp.m_pMonitor->CpuUsage();
+		//获取CPU功率
+        theApp.m_cpu_power = theApp.m_pMonitor->CpuPower();
         //获取CPU温度
         if (!theApp.m_pMonitor->AllCpuTemperature().empty())
         {

@@ -861,6 +861,39 @@
     <None Include="language\English.ini">
       <Filter>资源文件\language</Filter>
     </None>
+    <None Include="language\French.ini">
+      <Filter>资源文件\language</Filter>
+    </None>
+    <None Include="language\German.ini">
+      <Filter>资源文件\language</Filter>
+    </None>
+    <None Include="language\Hebrew.ini">
+      <Filter>资源文件\language</Filter>
+    </None>
+    <None Include="language\Hungarian.ini">
+      <Filter>资源文件\language</Filter>
+    </None>
+    <None Include="language\Italian.ini">
+      <Filter>资源文件\language</Filter>
+    </None>
+    <None Include="language\Korean.ini">
+      <Filter>资源文件\language</Filter>
+    </None>
+    <None Include="language\Polish.ini">
+      <Filter>资源文件\language</Filter>
+    </None>
+    <None Include="language\Portuguese_Brazilian.ini">
+      <Filter>资源文件\language</Filter>
+    </None>
+    <None Include="language\Russian.ini">
+      <Filter>资源文件\language</Filter>
+    </None>
+    <None Include="language\Spanish.ini">
+      <Filter>资源文件\language</Filter>
+    </None>
+    <None Include="language\Turkish.ini">
+      <Filter>资源文件\language</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <Image Include="res\menu_icon\close.ico">

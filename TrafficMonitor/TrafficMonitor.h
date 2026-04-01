@@ -52,6 +52,7 @@ public:
     int m_used_memory{};    //可用物理内存（单位为KB）
     int m_total_memory{};   //物理内存总量（单位为KB）
     float m_cpu_temperature{ -1 };  //CPU温度
+    float m_cpu_power{ -1 }; //CPU 功率（W）
     float m_cpu_freq{ -1 };  //CPU 频率
     float m_gpu_temperature{ -1 };  //显卡温度
     float m_hdd_temperature{ -1 };  //硬盘温度
@@ -98,10 +99,10 @@ public:
     CMenu m_taskbar_menu_plugin;    //右击任务栏窗口插件区域的右键菜单
     CMenu m_taskbar_menu_plugin_sub_menu;
 
-#ifndef WITHOUT_TEMPERATURE
+#ifndef WITHOUT_HARDWAREMONITOR
     //OpenHardwareMonitor 接口的指针
     std::shared_ptr<OpenHardwareMonitorApi::IOpenHardwareMonitor> m_pMonitor{};
-#endif // !WITHOUT_TEMPERATURE
+#endif // !WITHOUT_HARDWAREMONITOR
 
     CCriticalSection m_minitor_lib_critical;        //用于访问OpenHardwareMonitor进行线程同步的临界区对象
     //CCriticalSection m_lftable_critical;            //用于访问LfTable2进行线程同步的临界区对象

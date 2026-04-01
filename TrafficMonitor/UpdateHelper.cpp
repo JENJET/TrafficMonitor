@@ -70,10 +70,10 @@ void CUpdateHelper::ParseUpdateInfo(wstring version_info)
     m_version = version_xml.GetNode(L"version");
     wstring str_source_tag = (m_update_source == UpdateSource::GitHubSource ? L"GitHub" : L"Gitee");
     wstring str_link_tag, str_link_tag_x64, str_link_tag_arm64ec;
-#ifdef WITHOUT_TEMPERATURE
-    str_link_tag = L"link_without_temperature";
-    str_link_tag_x64 = L"link_without_temperature_x64";
-    str_link_tag_arm64ec = L"link_without_temperature_arm64ec";
+#ifdef WITHOUT_HARDWAREMONITOR
+    str_link_tag = L"link_without_hardwaremonitor";
+    str_link_tag_x64 = L"link_without_hardwaremonitor_x64";
+    str_link_tag_arm64ec = L"link_without_hardwaremonitor_arm64ec";
 #else
     str_link_tag = L"link";
     str_link_tag_x64 = L"link_x64";

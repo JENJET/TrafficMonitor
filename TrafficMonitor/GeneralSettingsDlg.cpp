@@ -31,6 +31,7 @@ void CGeneralSettingsDlg::CheckTaskbarDisplayItem()
     if (!theApp.m_general_data.IsHardwareEnable(HI_CPU))
     {
         theApp.m_taskbar_data.display_item.Remove(TDI_CPU_TEMP);
+        theApp.m_taskbar_data.display_item.Remove(TDI_CPU_POWER);
     }
     if (!theApp.m_general_data.IsHardwareEnable(HI_GPU))
     {
@@ -148,7 +149,7 @@ bool CGeneralSettingsDlg::ShowHardwareMonitorWarning()
 void CGeneralSettingsDlg::AddOrUpdateAutoRunTooltip(bool add)
 {
     CString str_tool_tip;
-#ifdef WITHOUT_TEMPERATURE
+#ifdef WITHOUT_HARDWAREMONITOR
     str_tool_tip = CCommon::LoadText(IDS_AUTO_RUN_METHOD_REGESTRY);
 #else
     str_tool_tip = CCommon::LoadText(IDS_AUTO_RUN_METHOD_TASK_SCHEDULE);
@@ -346,7 +347,7 @@ BOOL CGeneralSettingsDlg::OnInitDialog()
             CheckDlgButton(IDC_USE_CPU_TIME_RADIO, TRUE);
     }
 
-#ifndef WITHOUT_TEMPERATURE
+#ifndef WITHOUT_HARDWAREMONITOR
     EnableDlgCtrl(IDC_USE_HARDWARE_MONITOR_RADIO, m_data.IsHardwareEnable(HI_CPU));
 #else
     EnableDlgCtrl(IDC_USE_HARDWARE_MONITOR_RADIO, false);
@@ -362,11 +363,18 @@ BOOL CGeneralSettingsDlg::OnInitDialog()
     {
         const auto& disk_names = CTrafficMonitorDlg::Instance()->GetPdhDiskUsageHelper().GetDiskNames();
         for (const auto& hdd_name : disk_names)
+        {
+            if (hdd_name == L"_Total")
+            {
+                m_hard_disk_combo.AddString(CCommon::LoadText(IDS_ALL_DISKS));
+				continue;
+            }
             m_hard_disk_combo.AddString(hdd_name);
+        }
         int cur_index = m_hard_disk_combo.FindString(-1, m_data.hard_disk_name.c_str());
         m_hard_disk_combo.SetCurSel(cur_index);
     }
-#ifndef WITHOUT_TEMPERATURE
+#ifndef WITHOUT_HARDWAREMONITOR
     //初始化硬件监控Check box
     CheckDlgButton(IDC_CPU_CHECK, m_data.IsHardwareEnable(HI_CPU));
     CheckDlgButton(IDC_GPU_CHECK, m_data.IsHardwareEnable(HI_GPU));
@@ -396,7 +404,7 @@ BOOL CGeneralSettingsDlg::OnInitDialog()
 #endif
 
     //不含温度监控的版本，禁用温度相关的控件
-#ifdef WITHOUT_TEMPERATURE
+#ifdef WITHOUT_HARDWAREMONITOR
     EnableDlgCtrl(IDC_CPU_TEMP_TIP_CHECK, false);
     EnableDlgCtrl(IDC_CPU_TEMP_TIP_EDIT, false);
     EnableDlgCtrl(IDC_GPU_TEMP_TIP_CHECK, false);

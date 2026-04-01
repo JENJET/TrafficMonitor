@@ -301,8 +301,10 @@ void CTaskBarDlg::DrawDisplayItem(IDrawCommon& drawer, DisplayItem type, CRect r
     }
 
     // 绘制状态条
-    if (type == TDI_CPU || type == TDI_MEMORY || type == TDI_GPU_USAGE || type == TDI_CPU_TEMP
-        || type == TDI_GPU_TEMP || type == TDI_HDD_TEMP || type == TDI_MAIN_BOARD_TEMP || type == TDI_HDD_USAGE
+	if (type == TDI_CPU || type == TDI_MEMORY || type == TDI_GPU_USAGE 
+        || type == TDI_CPU_POWER || type == TDI_CPU_TEMP 
+        || type == TDI_GPU_TEMP || type == TDI_HDD_TEMP || type == TDI_MAIN_BOARD_TEMP 
+        || type == TDI_HDD_USAGE
         || type == TDI_UP || type == TDI_DOWN || type == TDI_TOTAL_SPEED/* ||type==TDI_CPU_FREQ*/)
     {
         int figure_value{};
@@ -316,6 +318,9 @@ void CTaskBarDlg::DrawDisplayItem(IDrawCommon& drawer, DisplayItem type, CRect r
             break;
         case TDI_GPU_USAGE:
             figure_value = theApp.m_gpu_usage;
+            break;
+        case TDI_CPU_POWER:
+            figure_value = theApp.m_cpu_power;
             break;
         case TDI_CPU_TEMP:
             figure_value = theApp.m_cpu_temperature;
@@ -754,10 +759,15 @@ CString CTaskBarDlg::GetMouseTipsInfo()
         tip_info += temp;
     }
 
-#ifndef WITHOUT_TEMPERATURE
+#ifndef WITHOUT_HARDWAREMONITOR
     CTrafficMonitorDlg* pMainWnd = dynamic_cast<CTrafficMonitorDlg*>(theApp.m_pMainWnd);
-    if (pMainWnd->IsTemperatureNeeded())
+    if (pMainWnd->IsHardwareMonitorNeeded())
     {
+        if (!IsItemShow(TDI_CPU_POWER) && theApp.m_cpu_power > 0)
+        {
+            temp.Format(_T("\r\n%s: %s"), CCommon::LoadText(IDS_CPU_POWER), CCommon::PowerToString(theApp.m_cpu_power, theApp.m_taskbar_data));
+            tip_info += temp;
+        }
         if (!IsItemShow(TDI_CPU_TEMP) && theApp.m_cpu_temperature > 0)
         {
             temp.Format(_T("\r\n%s: %s"), CCommon::LoadText(IDS_CPU_TEMPERATURE), CCommon::TemperatureToString(theApp.m_cpu_temperature, theApp.m_taskbar_data));

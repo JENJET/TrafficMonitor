@@ -76,7 +76,7 @@ void CTrafficMonitorApp::LoadConfig()
     //载入获取CPU利用率的方式，默认使用性能计数器获取
     m_general_data.cpu_usage_acquire_method = static_cast<GeneralSettingData::CpuUsageAcquireMethod>(ini.GetInt(L"general", L"cpu_usage_acquire_method", GeneralSettingData::CA_PDH));
     //Lite版获取CPU利用率的方式不能为“通过硬件监控”
-#ifdef WITHOUT_TEMPERATURE
+#ifdef WITHOUT_HARDWAREMONITOR
     if (m_general_data.cpu_usage_acquire_method == GeneralSettingData::CA_HARDWARE_MONITOR)
         m_general_data.cpu_usage_acquire_method = GeneralSettingData::CA_CPU_TIME;
 #endif
@@ -183,7 +183,8 @@ void CTrafficMonitorApp::LoadConfig()
     m_taskbar_data.secondary_display_index = ini.GetInt(L"task_bar", L"secondary_display_index", 0);
 
     //不含温度监控的版本，不显示温度监控相关项目
-#ifdef WITHOUT_TEMPERATURE
+#ifdef WITHOUT_HARDWAREMONITOR
+    m_taskbar_data.display_item.Remove(TDI_CPU_POWER);
     m_taskbar_data.display_item.Remove(TDI_CPU_TEMP);
     m_taskbar_data.display_item.Remove(TDI_GPU_TEMP);
     m_taskbar_data.display_item.Remove(TDI_HDD_TEMP);
@@ -192,7 +193,10 @@ void CTrafficMonitorApp::LoadConfig()
 
     //如果选项设置中关闭了某个硬件监控，则不显示对应的温度监控相关项目
     if (!m_general_data.IsHardwareEnable(HI_CPU))
+    {
         m_taskbar_data.display_item.Remove(TDI_CPU_TEMP);
+        m_taskbar_data.display_item.Remove(TDI_CPU_POWER);
+    }
     if (!m_general_data.IsHardwareEnable(HI_GPU))
     {
         m_taskbar_data.display_item.Remove(TDI_GPU_TEMP);
@@ -273,7 +277,7 @@ void CTrafficMonitorApp::LoadConfig()
     m_taskbar_data.graph_color_following_system = ini.GetBool(L"task_bar", L"graph_color_following_system", false);
 
     if (CTaskBarDlgDrawCommonSupport::CheckSupport())
-        m_taskbar_data.disable_d2d = ini.GetBool(L"task_bar", L"disable_d2d", true);
+        m_taskbar_data.disable_d2d = ini.GetBool(L"task_bar", L"disable_d2d", false);
     else
         m_taskbar_data.disable_d2d = true;
     m_taskbar_data.enable_colorful_emoji = ini.GetBool(L"task_bar", L"enable_colorful_emoji", true);
@@ -473,7 +477,7 @@ void CTrafficMonitorApp::LoadPluginDisabledSettings()
 
 void CTrafficMonitorApp::LoadGlobalConfig()
 {
-    bool portable_mode_default{ false };
+    bool portable_mode_default{ true };
     wstring global_cfg_path{ m_module_dir + L"global_cfg.ini" };
     if (!CCommon::FileExist(global_cfg_path.c_str()))       //如果global_cfg.ini不存在，则根据AppData/Roaming/TrafficMonitor目录下是否存在config.ini来判断配置文件的保存位置
     {
@@ -630,7 +634,7 @@ UINT CTrafficMonitorApp::CheckUpdateThreadFunc(LPVOID lpParam)
 
 UINT CTrafficMonitorApp::InitOpenHardwareMonitorLibThreadFunc(LPVOID lpParam)
 {
-#ifndef WITHOUT_TEMPERATURE
+#ifndef WITHOUT_HARDWAREMONITOR
     CSingleLock sync(&theApp.m_minitor_lib_critical, TRUE);
     theApp.m_pMonitor = OpenHardwareMonitorApi::CreateInstance();
     if (theApp.m_pMonitor == nullptr)
@@ -646,7 +650,7 @@ UINT CTrafficMonitorApp::InitOpenHardwareMonitorLibThreadFunc(LPVOID lpParam)
 bool  CTrafficMonitorApp::SetAutoRun(bool auto_run)
 {
     //不含温度监控的版本使用添加注册表项的方式实现开机自启动
-#ifdef WITHOUT_TEMPERATURE
+#ifdef WITHOUT_HARDWAREMONITOR
     return SetAutoRunByRegistry(auto_run);
 #else
     //包含温度监控的版本使用任务计划的方式实现开机自启动
@@ -659,7 +663,7 @@ bool CTrafficMonitorApp::GetAutoRun(wstring* auto_run_path)
     if (auto_run_path != nullptr)
         auto_run_path->clear();
     //不含温度监控的版本使用添加注册表项的方式实现开机自启动
-#ifdef WITHOUT_TEMPERATURE
+#ifdef WITHOUT_HARDWAREMONITOR
     CRegKey key;
     if (key.Open(HKEY_CURRENT_USER, _T("Software\\Microsoft\\Windows\\CurrentVersion\\Run")) != ERROR_SUCCESS)
     {
@@ -771,7 +775,7 @@ CString CTrafficMonitorApp::GetSystemInfoString()
     info += _T("x86");
 #endif
 
-#ifdef WITHOUT_TEMPERATURE
+#ifdef WITHOUT_HARDWAREMONITOR
     info += _T(" (Lite)");
 #endif
 
@@ -1061,7 +1065,7 @@ BOOL CTrafficMonitorApp::InitInstance()
         CheckUpdateInThread(false);
     }
 
-#ifndef WITHOUT_TEMPERATURE
+#ifndef WITHOUT_HARDWAREMONITOR
     //检测是否安装.net framework 4.5
     if (!CWindowsSettingHelper::IsDotNetFramework4Point5Installed())
     {
@@ -1133,7 +1137,7 @@ BOOL CTrafficMonitorApp::InitInstance()
 
 void CTrafficMonitorApp::InitOpenHardwareLibInThread()
 {
-#ifndef WITHOUT_TEMPERATURE
+#ifndef WITHOUT_HARDWAREMONITOR
     AfxBeginThread(InitOpenHardwareMonitorLibThreadFunc, NULL);
 #endif
 }
@@ -1141,7 +1145,7 @@ void CTrafficMonitorApp::InitOpenHardwareLibInThread()
 
 void CTrafficMonitorApp::UpdateOpenHardwareMonitorEnableState()
 {
-#ifndef WITHOUT_TEMPERATURE
+#ifndef WITHOUT_HARDWAREMONITOR
     if (m_pMonitor != nullptr)
     {
         CSingleLock sync(&theApp.m_minitor_lib_critical, TRUE);
@@ -1171,7 +1175,7 @@ void CTrafficMonitorApp::UpdateOpenHardwareMonitorEnableState()
 //        }
 //
 //        //添加温度相关菜单项
-//#ifndef WITHOUT_TEMPERATURE
+//#ifndef WITHOUT_HARDWAREMONITOR
 //        if (m_general_data.IsHardwareEnable(HI_GPU))
 //            pMenu->AppendMenu(MF_STRING | MF_ENABLED, ID_SHOW_GPU, CCommon::LoadText(IDS_GPU_USAGE));
 //        if (m_general_data.IsHardwareEnable(HI_CPU))
@@ -1408,6 +1412,7 @@ double CTrafficMonitorApp::GetMonitorValue(MonitorItem item)
     case MI_MEMORY: return m_memory_usage;
     case MI_GPU_USAGE: return m_gpu_usage;
     case MI_CPU_TEMP: return m_cpu_temperature;
+    case MI_CPU_POWER: return m_cpu_power;
     case MI_GPU_TEMP: return m_gpu_temperature;
     case MI_HDD_TEMP: return m_hdd_temperature;
     case MI_MAIN_BOARD_TEMP: return m_main_board_temperature;
@@ -1440,6 +1445,7 @@ const wchar_t* CTrafficMonitorApp::GetMonitorValueString(MonitorItem item, int i
         case MI_CPU: display_item = DisplayItem::TDI_CPU; break;
         case MI_MEMORY: display_item = DisplayItem::TDI_MEMORY; break;
         case MI_GPU_USAGE: display_item = DisplayItem::TDI_GPU_USAGE; break;
+        case MI_CPU_POWER: display_item = DisplayItem::TDI_CPU_POWER; break;
         case MI_CPU_TEMP: display_item = DisplayItem::TDI_CPU_TEMP; break;
         case MI_GPU_TEMP: display_item = DisplayItem::TDI_GPU_TEMP; break;
         case MI_HDD_TEMP: display_item = DisplayItem::TDI_HDD_TEMP; break;

@@ -88,6 +88,8 @@ bool CTaskbarItemOrderHelper::IsItemDisplayed(CommonDisplayItem item)
     bool displayed = true;
     if (!item.IsPlugin())
     {
+        if ((item == TDI_CPU_POWER) && !theApp.m_general_data.IsHardwareEnable(HI_CPU))
+			displayed = false;
         if ((item == TDI_CPU_TEMP) && !theApp.m_general_data.IsHardwareEnable(HI_CPU))
             displayed = false;
         if ((item == TDI_GPU_TEMP) && !theApp.m_general_data.IsHardwareEnable(HI_GPU))
