@@ -156,6 +156,9 @@ public:
     static CString LoadText(const wchar_t* id, LPCTSTR back_str = nullptr);
     static CString LoadText(LPCTSTR front_str, const wchar_t* id, LPCTSTR back_str);
 
+	//double类型格式化成字符串，precision为小数点后的位数
+    static CString FormatDouble(double val, int precision);
+
     //安全的格式化字符串，将format_str中形如<%序号%>的字符串替换成初始化列表paras中的元素，元素支持int/double/LPCTSTR/CString格式，序号从1开始
     static CString StringFormat(LPCTSTR format_str, const std::initializer_list<CVariant>& paras);
 

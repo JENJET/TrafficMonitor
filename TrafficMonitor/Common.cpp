@@ -2,7 +2,6 @@
 #include "Common.h"
 #include "TrafficMonitor.h"
 
-
 CCommon::CCommon()
 {
 }
@@ -365,7 +364,7 @@ CString CCommon::PowerToString(float power, const PublicSettingData& cfg)
     if (power <= 0)
         str_val = _T("--");
     else
-        str_val.Format(_T("%.1f"), power);
+        str_val.Format(_T("%.2f"), power);
     if (cfg.separate_value_unit_with_space)
         str_val += _T(' ');
     str_val += _T("W");
@@ -400,6 +399,7 @@ CString CCommon::FreqToString(float freq, const PublicSettingData& cfg)
     str_val += _T("GHz");
     return str_val;
 }
+
 //CString CCommon::KBytesToString(unsigned int kb_size)
 //{
 //  CString k_bytes_str;
@@ -957,6 +957,18 @@ CString CCommon::LoadText(LPCTSTR front_str, const wchar_t* id, LPCTSTR back_str
         str += back_str;
     if (front_str != nullptr)
         str = front_str + str;
+    return str;
+}
+
+CString CCommon::FormatDouble(double val, int precision)
+{
+    CString str;
+    CString fmt;
+    if (precision <= 0)
+		fmt = _T("%lf");
+    else 
+        fmt.Format(_T("%%.%dlf"), precision); // 构造如 "%.2f" 的格式字符串
+    str.Format(fmt, val);
     return str;
 }
 

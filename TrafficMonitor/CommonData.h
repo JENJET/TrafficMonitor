@@ -229,7 +229,7 @@ struct PublicSettingData
     FontInfo font;          //字体
     DispStrings disp_str;   //显示的文本
     bool speed_short_mode{ false };     //网速显示简洁模式（减少小数点的位数，单位不显示“B”）
-    bool separate_value_unit_with_space{ true };    //网速数值和单位用空格分隔
+    bool separate_value_unit_with_space{ true };    //数值和单位用空格分隔
     bool show_tool_tip{ true };         //显示鼠标提示
     MemoryDisplay memory_display{ MemoryDisplay::USAGE_PERCENTAGE };    //内存显示方式
 

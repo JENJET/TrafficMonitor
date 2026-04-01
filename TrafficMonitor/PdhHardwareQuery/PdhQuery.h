@@ -18,6 +18,8 @@ protected:
     };
     bool QueryValues(std::vector<CounterValueItem>& values);
 
+    CString GetDiskNameByIndex(int diskIndex);
+
 protected:
     HQUERY query = nullptr;
     HCOUNTER counter = nullptr;

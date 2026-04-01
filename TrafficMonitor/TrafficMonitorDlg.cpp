@@ -666,7 +666,7 @@ void CTrafficMonitorDlg::UpdateNotifyIconTip()
     if (IsHardwareMonitorNeeded())
     {
         if (theApp.m_general_data.IsHardwareEnable(HI_CPU) && theApp.m_cpu_power >= 0)
-            strTip += CCommon::StringFormat(_T("\r\n<%1%>: <%2%> %"), { CCommon::LoadText(IDS_CPU_POWER), theApp.m_cpu_power });
+            strTip += CCommon::StringFormat(_T("\r\n<%1%>: <%2%> W"), { CCommon::LoadText(IDS_CPU_POWER), CCommon::FormatDouble(theApp.m_cpu_power, 2) });
         if (theApp.m_general_data.IsHardwareEnable(HI_GPU) && theApp.m_gpu_usage >= 0)
             strTip += CCommon::StringFormat(_T("\r\n<%1%>: <%2%> %"), { CCommon::LoadText(IDS_GPU_USAGE), theApp.m_gpu_usage });
         if (theApp.m_general_data.IsHardwareEnable(HI_CPU) && theApp.m_cpu_temperature > 0)
@@ -1494,10 +1494,23 @@ void CTrafficMonitorDlg::DoMonitorAcquisition()
             auto iter = theApp.m_pMonitor->AllHDDTemperature().find(theApp.m_general_data.hard_disk_name);
             if (iter == theApp.m_pMonitor->AllHDDTemperature().end())
             {
-                iter = theApp.m_pMonitor->AllHDDTemperature().begin();
-                theApp.m_general_data.hard_disk_name = iter->first;
+                auto iter = theApp.m_pMonitor->AllHDDTemperature().begin();
+                while (iter != theApp.m_pMonitor->AllHDDTemperature().end())
+                {
+                    if (iter->second <= 0)
+                    {
+                        iter++;
+						continue;
+                    }
+					theApp.m_general_data.hard_disk_name = iter->first;
+                    theApp.m_hdd_temperature = iter->second;
+					break;
+				}
             }
-            theApp.m_hdd_temperature = iter->second;
+            else
+            {
+                theApp.m_hdd_temperature = iter->second;
+            }
         }
         else
         {
@@ -1511,10 +1524,23 @@ void CTrafficMonitorDlg::DoMonitorAcquisition()
                 auto iter = theApp.m_pMonitor->AllHDDUsage().find(theApp.m_general_data.hard_disk_name);
                 if (iter == theApp.m_pMonitor->AllHDDUsage().end())
                 {
-                    iter = theApp.m_pMonitor->AllHDDUsage().begin();
-                    theApp.m_general_data.hard_disk_name = iter->first;
+					auto iter = theApp.m_pMonitor->AllHDDUsage().begin();
+                    while (iter != theApp.m_pMonitor->AllHDDUsage().end())
+                    {
+                        if (iter->second < 0)
+                        {
+                            iter++;
+                            continue;
+                        }
+                        theApp.m_general_data.hard_disk_name = iter->first;
+                        theApp.m_hdd_usage = iter->second;
+                        break;
+                    }
                 }
-                theApp.m_hdd_usage = iter->second;
+                else
+                {
+                    theApp.m_hdd_usage = iter->second;
+                }
             }
             else
             {

@@ -1,6 +1,8 @@
 #include "stdafx.h"
 #include "PdhQuery.h"
 
+#include <winioctl.h>
+
 CPdhQuery::CPdhQuery(LPCTSTR _fullCounterPath)
     : fullCounterPath(_fullCounterPath)
 {
@@ -88,6 +90,11 @@ bool CPdhQuery::QueryValues(std::vector<CounterValueItem>& values)
                     CounterValueItem value_item;
                     value_item.name = pItems[i].szName;
                     value_item.value = pItems[i].FmtValue.doubleValue;
+                    auto name = GetDiskNameByIndex(i);
+                    if (!name.IsEmpty())
+						value_item.name = std::wstring(name);
+                    else
+                        continue;
                     values.push_back(value_item);
                 }
             }
@@ -111,4 +118,85 @@ bool CPdhQuery::QueryValues(std::vector<CounterValueItem>& values)
     }
 
     return true;
+}
+
+CString CPdhQuery::GetDiskNameByIndex(int diskIndex)
+{
+    CString strFullName = _T("");
+    CString strPath;
+    strPath.Format(_T("\\\\.\\PhysicalDrive%d"), diskIndex);
+
+    // 1. 打开设备句柄 (dwDesiredAccess 设为 0 即可查询属性，无需管理员权限)
+    HANDLE hDevice = ::CreateFile(strPath,
+        0,
+        FILE_SHARE_READ | FILE_SHARE_WRITE,
+        NULL,
+        OPEN_EXISTING,
+        0,
+        NULL);
+
+    if (hDevice == INVALID_HANDLE_VALUE) return _T("");
+
+    // 2. 配置查询参数
+    STORAGE_PROPERTY_QUERY query = { StorageDeviceProperty, PropertyStandardQuery };
+
+    // 准备足够大的缓冲区 (1KB 通常足够存储描述符及所有字符串)
+    BYTE buffer[1024] = { 0 };
+    DWORD bytesReturned = 0;
+
+    // 3. 调用 DeviceIoControl 获取存储设备描述符
+    if (::DeviceIoControl(hDevice,
+        IOCTL_STORAGE_QUERY_PROPERTY,
+        &query, sizeof(query),
+        buffer, sizeof(buffer),
+        &bytesReturned,
+        NULL))
+    {
+        STORAGE_DEVICE_DESCRIPTOR* pDesc = (STORAGE_DEVICE_DESCRIPTOR*)buffer;
+        CString strVendor = _T("");
+        CString strProduct = _T("");
+
+        // 4. 获取厂家信息 (Vendor ID)
+        if (pDesc->VendorIdOffset != 0)
+        {
+            const char* pVendor = (const char*)(buffer + pDesc->VendorIdOffset);
+            strVendor = pVendor;
+            strVendor.Trim(); // 物理驱动器返回的字符串常带尾部空格
+        }
+
+        // 5. 获取产品型号 (Product ID)
+        if (pDesc->ProductIdOffset != 0)
+        {
+            const char* pProduct = (const char*)(buffer + pDesc->ProductIdOffset);
+            strProduct = pProduct;
+            strProduct.Trim();
+        }
+
+        // 6. 智能拼接
+        if (!strVendor.IsEmpty() && !strProduct.IsEmpty())
+        {
+            // 如果型号中已经包含了厂家名（某些 NVMe 驱动会这样），则不重复拼接
+            if (strProduct.Find(strVendor) != -1)
+                strFullName = strProduct;
+            else
+                strFullName = strVendor + _T(" ") + strProduct;
+        }
+        else if (!strProduct.IsEmpty())
+        {
+            strFullName = strProduct;
+        }
+        else
+        {
+            strFullName = strVendor;
+        }
+    }
+
+    ::CloseHandle(hDevice);
+
+    // 最终兜底：如果还是空的，返回一个通用描述
+    if (strFullName.IsEmpty()) {
+        strFullName.Format(_T("Physical Drive %d"), diskIndex);
+    }
+
+    return strFullName;
 }
