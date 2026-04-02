@@ -46,7 +46,7 @@ namespace OpenHardwareMonitorApi {
         bool GetCPUFreq(IHardware^ hardware, float& freq);
         bool GetCpuUsage(IHardware^ hardware, float& cpu_usage);
         void ResetAllValues();
-        //?map??????????key?????????????key???
+        //向map中插入一个数值，如果key已经存在，则自动对新插入的key重命名
         static void InsertValueToMap(std::map<std::wstring, float>& value_map, const std::wstring& key, float value);
 
     private:
@@ -71,8 +71,8 @@ namespace OpenHardwareMonitorApi {
         std::map<std::wstring, float> m_all_hdd_usage;
     };
 
-    //??????
-    //??COpenHardwareMonitor??????????????????????????????????
+    //一个单实例类
+    //由于COpenHardwareMonitor是非托管类，不能将托管类的对象作为成员变量，此类用于保存托管类的对象
     public ref class MonitorGlobal
     {
     public:
@@ -97,4 +97,3 @@ namespace OpenHardwareMonitorApi {
         static MonitorGlobal^ m_instance{};
     };
 }
-

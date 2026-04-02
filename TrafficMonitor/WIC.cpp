@@ -7,7 +7,7 @@ CWICFactory CWICFactory::m_instance;
 CWICFactory::CWICFactory()
 {
 #ifndef COMPILE_IN_WIN_XP
-    //��ʼ��m_pWICFactory
+    //初始化m_pWICFactory
     _hrOleInit = ::OleInitialize(NULL);
     CoCreateInstance(CLSID_WICImagingFactory, NULL, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&m_pWICFactory));
     if (m_pWICFactory == nullptr)
@@ -45,7 +45,7 @@ CMenuIcon::~CMenuIcon()
 
 HRESULT CMenuIcon::AddIconToMenuItem(HMENU hmenu, int iMenuItem, BOOL fByPosition, HICON hicon)
 {
-    //����Wine�����²˵�ͼ�������쳣����˲�Ϊ�˵����ͼ��
+    //由于Wine环境下菜单图标会出现异常，因此不为菜单添加图标
     if (theApp.m_win_version.IsWine())
         return 0;
 

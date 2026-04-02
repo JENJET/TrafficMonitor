@@ -27,7 +27,7 @@ void CDrawCommonEx::Create(CDC* pDC)
 
 void CDrawCommonEx::SetFont(CFont * pFont)
 {
-    //���������õ�CDC����ͼʱ��CDC����GDI+����
+    //将字体设置到CDC，绘图时从CDC创建GDI+字体
     m_pDC->SelectObject(pFont);
 }
 
@@ -45,35 +45,35 @@ void CDrawCommonEx::SetBackColor(COLORREF back_color, BYTE alpha)
 
 void CDrawCommonEx::DrawWindowText(CRect rect, LPCTSTR lpszString, COLORREF color, Alignment align, bool draw_back_ground, bool multi_line, BYTE alpha)
 {
-    //��������
+    //矩形区域
     Gdiplus::RectF rect_gdiplus = CGdiPlusHelper::CRectToGdiplusRect(rect);
 
-    //���Ʊ���
+    //绘制背景
     if (draw_back_ground)
     {
         Gdiplus::SolidBrush brush(m_back_color);
         m_pGraphics->FillRectangle(&brush, rect_gdiplus);
     }
-    //��������
+    //设置字体
     Gdiplus::Font font(m_pDC->GetSafeHdc());
-    //�����ı���ɫ
+    //设置文本颜色
     Gdiplus::SolidBrush brush(CGdiPlusHelper::COLORREFToGdiplusColor(color, alpha));
-    //���ö��뷽ʽ
+    //设置对齐方式
     Gdiplus::StringFormat format;
     Gdiplus::StringAlignment alignment = Gdiplus::StringAlignmentNear;
     if (align == Alignment::CENTER)
         alignment = Gdiplus::StringAlignmentCenter;
     else if (align == Alignment::RIGHT)
         alignment = Gdiplus::StringAlignmentFar;
-    format.SetAlignment(alignment);    //ˮƽ���뷽ʽ
-    format.SetLineAlignment(Gdiplus::StringAlignmentCenter);    //��ֱ���뷽ʽ
+    format.SetAlignment(alignment);    //水平对齐方式
+    format.SetLineAlignment(Gdiplus::StringAlignmentCenter);    //垂直对齐方式
     UINT flags = Gdiplus::StringFormatFlagsNoFitBlackBox;
     if (!multi_line)
-        flags |= Gdiplus::StringFormatFlagsNoWrap;      //���Զ�����
-    format.SetTrimming(Gdiplus::StringTrimmingNone);    //��ֹ�ı��ض�
+        flags |= Gdiplus::StringFormatFlagsNoWrap;      //不自动换行
+    format.SetTrimming(Gdiplus::StringTrimmingNone);    //禁止文本截断
     format.SetFormatFlags(flags);
 
-    //�����ı�
+    //绘制文本
     m_pGraphics->DrawString(lpszString, -1, &font, rect_gdiplus, &format, &brush);
 }
 

@@ -22,15 +22,15 @@ public:
 	CCalendarHelper();
 	~CCalendarHelper();
 
-	//�Ƿ�Ϊ����
+	//是否为闰年
 	static bool IsLeapYear(int year);
-	//�������ڼ�������(0~6��������~������)
+	//根据日期计算星期(0~6：星期日~星期六)
 	static int CaculateWeekDay(int y, int m, int d);
-	//����һ�����ж�����
+	//计算一个月有多少天
 	static int DaysInMonth(int year, int month);
 
-	//��ȡָ���·ݵ��������ݣ�������������calendar��
-	//���sunday_firstΪtrue����������Ϊÿ�ܵĵ�һ�죬���򣬽���һ��Ϊÿ�ܵĵ�һ��
+	//获取指定月份的日历数据，并保存在数组calendar中
+	//如果sunday_first为true，则将周日作为每周的第一天，否则，将周一作为每周的第一天
 	static void GetCalendar(int year, int month, DayTraffic calendar[CALENDAR_HEIGHT][CALENDAR_WIDTH], bool sunday_first = true);
 
 };

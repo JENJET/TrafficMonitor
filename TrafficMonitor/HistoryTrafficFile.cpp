@@ -15,7 +15,7 @@ void CHistoryTrafficFile::Save() const
 {
 	ofstream file{ m_file_path };
 	char buff[64];
-	sprintf_s(buff, "lines: \"%u\"", static_cast<unsigned int>(m_history_traffics.size()));			//�ڵ�һ��д��������
+	sprintf_s(buff, "lines: \"%u\"", static_cast<unsigned int>(m_history_traffics.size()));			//在第一行写入总行数
 	file << buff << std::endl;
 	for (const auto& history_traffic : m_history_traffics)
 	{
@@ -38,7 +38,7 @@ void CHistoryTrafficFile::Load()
 	{
 		while (!file.eof())
 		{
-			if (m_history_traffics.size() > 9999) break;		//����ȡ10000�����ʷ��¼
+			if (m_history_traffics.size() > 9999) break;		//最多读取10000天的历史记录
 			std::getline(file, current_line);
 			//if (first_line)
 			//{
@@ -97,7 +97,7 @@ void CHistoryTrafficFile::LoadSize()
 	string current_line, temp;
 	if (CCommon::FileExist(m_file_path.c_str()))
 	{
-		std::getline(file, current_line);			//��ȡ��һ��
+		std::getline(file, current_line);			//读取第一行
 		size_t index = current_line.find("lines:");
 		if (index != wstring::npos)
 		{
@@ -115,7 +115,7 @@ void CHistoryTrafficFile::Merge(const CHistoryTrafficFile& history_traffic, bool
 	{
 		if(ignore_same_data)
 		{
-			//���Ҫ������ͬ���ڵ����ʹ�ö��ַ�����������ͬ�������ҵ��ˣ���������
+			//如果要忽略相同日期的项，则使用二分法查找日期相同的项，如果找到了，则跳过它
 			if (std::binary_search(m_history_traffics.begin(), m_history_traffics.end(), traffic, HistoryTraffic::DateGreater))
 			{
 				auto iter = std::lower_bound(m_history_traffics.begin(), m_history_traffics.end(), traffic, HistoryTraffic::DateGreater);
@@ -149,10 +149,10 @@ void CHistoryTrafficFile::MormalizeData()
 
 	if (m_history_traffics.size() >= 2)
 	{
-		//����ȡ������ʷ�����б�����ڴӴ�С����
+		//将读取到的历史流量列表按日期从大到小排序
 		std::sort(m_history_traffics.begin(), m_history_traffics.end(), HistoryTraffic::DateGreater);
 
-		//����б�������ͬ���ڵ���Ŀ�������ϲ�
+		//如果列表中有相同日期的项目，则将它合并
 		for (int i{}; i < static_cast<int>(m_history_traffics.size() - 1); i++)
 		{
 			if (HistoryTraffic::DateEqual(m_history_traffics[i], m_history_traffics[i + 1]))
@@ -164,7 +164,7 @@ void CHistoryTrafficFile::MormalizeData()
 		}
 	}
 
-	//����б��һ����Ŀ�������ǽ��죬�򽫵�һ����Ŀͳ�Ƶ�������Ϊ����ʹ�õ��������������б��ǰ�����һ������Ϊ�������Ŀ
+	//如果列表第一个项目的日期是今天，则将第一个项目统计的流量作为今天使用的流量，否则，在列表的前面插入一个日期为今天的项目
 	if (HistoryTraffic::DateEqual(m_history_traffics[0], traffic))
 	{
 		m_today_up_traffic = static_cast<__int64>(m_history_traffics[0].up_kBytes) * 1024;

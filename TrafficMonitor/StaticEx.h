@@ -1,7 +1,7 @@
 ﻿/*
-CStatic��������࣬��������ɫ���ı��ؼ���
-����SetTextColor�����ı���ɫ��
-����Ҫ��ʱ�����SetWindowTextEx���ÿؼ��ı�
+CStatic类的派生类，用作带颜色的文本控件：
+调用SetTextColor设置文本颜色；
+在需要的时候调用SetWindowTextEx设置控件文本
 */
 #pragma once
 #include "afxwin.h"
@@ -12,28 +12,28 @@ public:
 	CStaticEx();
 	~CStaticEx();
 
-	//���뷽ʽ
+	//对齐方式
 	enum Alignment
 	{
-		LEFT,       //�����
-		RIGHT,      //�Ҷ���
-		CENTER,     //����
+		LEFT,       //左对齐
+		RIGHT,      //右对齐
+		CENTER,     //居中
 	};
 
-	//��Static�ؼ�������������ɫ���ı�ʱ
+	//将Static控件用作绘制有颜色的文本时
 public:
-	void SetWindowTextEx(LPCTSTR lpszString, Alignment align = Alignment::LEFT);	//Ϊ�ؼ���������ɫ���ı�����Ҫ���SetTextColorʹ�ã�
-	void SetTextColor(COLORREF textColor);		//���ÿؼ��ı���ɫ
-	void SetBackColor(COLORREF back_color);		//���ÿؼ�������ɫ
-	CString GetString() const;			//��ȡ�ؼ��ı�
+	void SetWindowTextEx(LPCTSTR lpszString, Alignment align = Alignment::LEFT);	//为控件设置有颜色的文本（需要配合SetTextColor使用）
+	void SetTextColor(COLORREF textColor);		//设置控件文本颜色
+	void SetBackColor(COLORREF back_color);		//设置控件背景颜色
+	CString GetString() const;			//获取控件文本
 
 protected:
 	bool m_color_text{ false };
-	COLORREF m_text_color;	//�ؼ�������ɫ
+	COLORREF m_text_color;	//控件文字颜色
 	COLORREF m_back_color;
-	CString m_text;			//�ؼ��ϵ��ı�
-	Alignment m_align{};		//�ı��Ķ��뷽ʽ
-	bool m_draw_background_color{ false };	//�Ƿ���ҪΪ�ؼ���䱳����ɫ
+	CString m_text;			//控件上的文本
+	Alignment m_align{};		//文本的对齐方式
+	bool m_draw_background_color{ false };	//是否需要为控件填充背景颜色
 
 protected:
 	virtual LRESULT DefWindowProc(UINT message, WPARAM wParam, LPARAM lParam);
