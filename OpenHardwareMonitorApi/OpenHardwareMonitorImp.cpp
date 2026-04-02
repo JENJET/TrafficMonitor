@@ -220,8 +220,8 @@ namespace OpenHardwareMonitorApi
             {
                 float val = Convert::ToDouble(hardware->Sensors[i]->Value);
                 String^ name = hardware->Sensors[i]->Name;                
-                // Prefer sensors that mention "soc"
-                if (name != nullptr && name->ToLower()->Contains("soc"))
+                // Prefer sensors that mention "package"
+                if (name != nullptr && name->ToLower()->Contains("package"))
                 {
                     package_power = val;
                 }
