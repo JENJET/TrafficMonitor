@@ -352,6 +352,7 @@ public:
         MI_GPU_USAGE,           /**< 显卡利用率 */
         MI_CPU_POWER,           /**< CPU功率 */
         MI_CPU_TEMP,            /**< CPU温度 */
+        MI_GPU_POWER,           /**< GPU功率 */
         MI_GPU_TEMP,            /**< 显卡温度 */
         MI_HDD_TEMP,            /**< 硬盘温度 */
         MI_MAIN_BOARD_TEMP,     /**< 主板温度 */
