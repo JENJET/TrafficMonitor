@@ -51,6 +51,16 @@ namespace OpenHardwareMonitorApi
         return m_cpu_power;
     }
 
+    float COpenHardwareMonitor::GpuPower()
+    {
+        if (m_gpu_nvidia_power >= 0)
+            return m_gpu_nvidia_power;
+        else if (m_gpu_ati_power >= 0)
+            return m_gpu_ati_power;
+        else
+            return m_gpu_intel_power;
+    }
+
     float COpenHardwareMonitor::CpuTemperature()
     {
         return m_cpu_temperature;
@@ -176,7 +186,7 @@ namespace OpenHardwareMonitorApi
                 String^ name = hardware->Sensors[i]->Name;
                 float val = Convert::ToDouble(hardware->Sensors[i]->Value);
                 // Prefer sensors that mention "Package"
-                if (name != nullptr && name->Contains("Package"))
+                if (name != nullptr && name->ToLower()->Contains("package"))
                 {
                     package_power = val;
                     return true;
@@ -195,6 +205,67 @@ namespace OpenHardwareMonitorApi
         {
             if (GetCpuPower(hardware->SubHardware[i], package_power))
                 return true;
+        }
+        return false;
+    }
+
+    bool COpenHardwareMonitor::GetGpuPower(IHardware^ hardware, float& gpu_power)
+    {
+        gpu_power = -1;
+        float package_power = -1;
+        float max_power = -1;
+        for (int i = 0; i < hardware->Sensors->Length; i++)
+        {
+            if (hardware->Sensors[i]->SensorType == SensorType::Power)
+            {
+                float val = Convert::ToDouble(hardware->Sensors[i]->Value);
+                String^ name = hardware->Sensors[i]->Name;                
+                // Prefer sensors that mention "soc"
+                if (name != nullptr && name->ToLower()->Contains("soc"))
+                {
+                    package_power = val;
+                }
+                if (val > max_power)
+                    max_power = val;
+            }
+        }
+        if (package_power >= 0)
+        {
+            gpu_power = package_power;
+            return true;
+        }
+        if (max_power >= 0)
+        {
+            gpu_power = max_power;
+            return true;
+        }
+        // search subhardware
+        float sub_package_power = -1;
+        float sub_max_power = -1;
+        for (int i = 0; i < hardware->SubHardware->Length; i++)
+        {
+            float sub_power = -1;
+            if (GetGpuPower(hardware->SubHardware[i], sub_power))
+            {
+                String^ name = hardware->SubHardware[i]->Name;
+                // Prefer sensors that mention "Package"
+                if (name != nullptr && name->Contains("Package"))
+                {
+                    sub_package_power = sub_power;
+                }
+                if (sub_power > sub_max_power)
+                    sub_max_power = sub_power;
+            }
+        }
+        if (sub_package_power >= 0)
+        {
+            gpu_power = sub_package_power;
+            return true;
+        }
+        if (sub_max_power >= 0)
+        {
+            gpu_power = sub_max_power;
+            return true;
         }
         return false;
     }
@@ -333,6 +404,9 @@ namespace OpenHardwareMonitorApi
         m_gpu_nvidia_temperature = -1;
         m_gpu_ati_temperature = -1;
         m_gpu_intel_temperature = -1;
+        m_gpu_nvidia_power = -1;
+        m_gpu_ati_power = -1;
+        m_gpu_intel_power = -1;
         m_hdd_temperature = -1;
         m_main_board_temperature = -1;
         m_gpu_nvidia_usage = -1;
@@ -399,18 +473,24 @@ namespace OpenHardwareMonitorApi
                         GetHardwareTemperature(computer->Hardware[i], m_gpu_nvidia_temperature);
                     if (m_gpu_nvidia_usage < 0)
                         GetGpuUsage(computer->Hardware[i], m_gpu_nvidia_usage);
+                    if (m_gpu_nvidia_power < 0)
+                        GetGpuPower(computer->Hardware[i], m_gpu_nvidia_power);
                     break;
                 case HardwareType::GpuAmd:
                     if (m_gpu_ati_temperature < 0)
                         GetHardwareTemperature(computer->Hardware[i], m_gpu_ati_temperature);
                     if (m_gpu_ati_usage < 0)
                         GetGpuUsage(computer->Hardware[i], m_gpu_ati_usage);
+                    if (m_gpu_ati_power < 0)
+                        GetGpuPower(computer->Hardware[i], m_gpu_ati_power);
                     break;
                 case HardwareType::GpuIntel:
                     if (m_gpu_intel_temperature < 0)
                         GetHardwareTemperature(computer->Hardware[i], m_gpu_intel_temperature);
                     if (m_gpu_intel_usage < 0)
                         GetGpuUsage(computer->Hardware[i], m_gpu_intel_usage);
+                    if (m_gpu_intel_power < 0)
+                        GetGpuPower(computer->Hardware[i], m_gpu_intel_power);
                     break;
                 case HardwareType::Storage:
                 {

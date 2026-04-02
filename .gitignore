@@ -300,3 +300,4 @@ __pycache__/
 !/TrafficMonitor/language/*.ini
 *.diagsession
 /TrafficMonitor/Win32
+*.metaproj

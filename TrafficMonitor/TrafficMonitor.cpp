@@ -185,6 +185,7 @@ void CTrafficMonitorApp::LoadConfig()
     //不含温度监控的版本，不显示温度监控相关项目
 #ifdef WITHOUT_HARDWAREMONITOR
     m_taskbar_data.display_item.Remove(TDI_CPU_POWER);
+    m_taskbar_data.display_item.Remove(TDI_GPU_POWER);
     m_taskbar_data.display_item.Remove(TDI_CPU_TEMP);
     m_taskbar_data.display_item.Remove(TDI_GPU_TEMP);
     m_taskbar_data.display_item.Remove(TDI_HDD_TEMP);
@@ -200,6 +201,7 @@ void CTrafficMonitorApp::LoadConfig()
     if (!m_general_data.IsHardwareEnable(HI_GPU))
     {
         m_taskbar_data.display_item.Remove(TDI_GPU_TEMP);
+        m_taskbar_data.display_item.Remove(TDI_GPU_POWER);
     }
     if (!m_general_data.IsHardwareEnable(HI_HDD))
     {
@@ -1413,6 +1415,7 @@ double CTrafficMonitorApp::GetMonitorValue(MonitorItem item)
     case MI_GPU_USAGE: return m_gpu_usage;
     case MI_CPU_TEMP: return m_cpu_temperature;
     case MI_CPU_POWER: return m_cpu_power;
+    case MI_GPU_POWER: return m_gpu_power;
     case MI_GPU_TEMP: return m_gpu_temperature;
     case MI_HDD_TEMP: return m_hdd_temperature;
     case MI_MAIN_BOARD_TEMP: return m_main_board_temperature;
@@ -1446,6 +1449,7 @@ const wchar_t* CTrafficMonitorApp::GetMonitorValueString(MonitorItem item, int i
         case MI_MEMORY: display_item = DisplayItem::TDI_MEMORY; break;
         case MI_GPU_USAGE: display_item = DisplayItem::TDI_GPU_USAGE; break;
         case MI_CPU_POWER: display_item = DisplayItem::TDI_CPU_POWER; break;
+        case MI_GPU_POWER: display_item = DisplayItem::TDI_GPU_POWER; break;
         case MI_CPU_TEMP: display_item = DisplayItem::TDI_CPU_TEMP; break;
         case MI_GPU_TEMP: display_item = DisplayItem::TDI_GPU_TEMP; break;
         case MI_HDD_TEMP: display_item = DisplayItem::TDI_HDD_TEMP; break;

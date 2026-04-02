@@ -1,4 +1,4 @@
-#include "stdafx.h"
+ï»¿#include "stdafx.h"
 #include "WineTaskbarDlg.h"
 
 void CWineTaskbarDlg::InitTaskbarWnd()
@@ -8,7 +8,7 @@ void CWineTaskbarDlg::InitTaskbarWnd()
 
 void CWineTaskbarDlg::AdjustTaskbarWndPos(bool force_adjust)
 {
-    //ÒÆ¶¯µ½×ÀÃæÓÒÏÂ½Ç
+    //ï¿½Æ¶ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Â½ï¿½
     int screen_width = GetSystemMetrics(SM_CXSCREEN);
     int screen_height = GetSystemMetrics(SM_CYSCREEN);
     CRect rect{ m_rect };

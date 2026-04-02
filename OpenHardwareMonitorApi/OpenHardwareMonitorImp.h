@@ -21,6 +21,7 @@ namespace OpenHardwareMonitorApi {
         virtual float CpuPower() override;
         virtual float CpuTemperature() override;
         virtual float GpuTemperature() override;
+        virtual float GpuPower() override;
         virtual float HDDTemperature() override;
         virtual float MainboardTemperature() override;
         virtual float GpuUsage() override;
@@ -37,6 +38,7 @@ namespace OpenHardwareMonitorApi {
 
     private:
         bool GetCpuPower(IHardware^ hardware, float& package_power);
+        bool GetGpuPower(IHardware^ hardware, float& gpu_power);
         bool GetCpuTemperature(IHardware^ hardware, float& temperature);
         bool GetHardwareTemperature(IHardware^ hardware, float& temperature);
         bool GetGpuUsage(IHardware^ hardware, float& gpu_usage);
@@ -44,7 +46,7 @@ namespace OpenHardwareMonitorApi {
         bool GetCPUFreq(IHardware^ hardware, float& freq);
         bool GetCpuUsage(IHardware^ hardware, float& cpu_usage);
         void ResetAllValues();
-        //向map中插入一个数值，如果key已经存在，则自动对新插入的key重命名
+        //?map??????????key?????????????key???
         static void InsertValueToMap(std::map<std::wstring, float>& value_map, const std::wstring& key, float value);
 
     private:
@@ -53,6 +55,9 @@ namespace OpenHardwareMonitorApi {
         float m_gpu_nvidia_temperature{};
         float m_gpu_ati_temperature{};
         float m_gpu_intel_temperature{};
+        float m_gpu_nvidia_power{};
+        float m_gpu_ati_power{};
+        float m_gpu_intel_power{};
         float m_hdd_temperature{};
         float m_main_board_temperature{};
         float m_gpu_nvidia_usage{};
@@ -66,8 +71,8 @@ namespace OpenHardwareMonitorApi {
         std::map<std::wstring, float> m_all_hdd_usage;
     };
 
-    //一个单实例类
-    //由于COpenHardwareMonitor是非托管类，不能将托管类的对象作为成员变量，此类用于保存托管类的对象
+    //??????
+    //??COpenHardwareMonitor??????????????????????????????????
     public ref class MonitorGlobal
     {
     public:
@@ -92,3 +97,4 @@ namespace OpenHardwareMonitorApi {
         static MonitorGlobal^ m_instance{};
     };
 }
+

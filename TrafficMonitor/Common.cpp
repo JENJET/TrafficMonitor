@@ -361,7 +361,7 @@ CString CCommon::TemperatureToString(float temperature, const PublicSettingData&
 CString CCommon::PowerToString(float power, const PublicSettingData& cfg)
 {
     CString str_val;
-    if (power <= 0)
+    if (power < 0)
         str_val = _T("--");
     else
         str_val.Format(_T("%.2f"), power);

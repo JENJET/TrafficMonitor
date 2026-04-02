@@ -1,4 +1,4 @@
-#include "stdafx.h"
+ï»¿#include "stdafx.h"
 #include "DrawCommonEx.h"
 #include "DrawCommon.h"
 
@@ -27,7 +27,7 @@ void CDrawCommonEx::Create(CDC* pDC)
 
 void CDrawCommonEx::SetFont(CFont * pFont)
 {
-    //½«×ÖÌåÉèÖÃµ½CDC£¬»æÍ¼Ê±´ÓCDC´´½¨GDI+×ÖÌå
+    //ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ãµï¿½CDCï¿½ï¿½ï¿½ï¿½Í¼Ê±ï¿½ï¿½CDCï¿½ï¿½ï¿½ï¿½GDI+ï¿½ï¿½ï¿½ï¿½
     m_pDC->SelectObject(pFont);
 }
 
@@ -45,35 +45,35 @@ void CDrawCommonEx::SetBackColor(COLORREF back_color, BYTE alpha)
 
 void CDrawCommonEx::DrawWindowText(CRect rect, LPCTSTR lpszString, COLORREF color, Alignment align, bool draw_back_ground, bool multi_line, BYTE alpha)
 {
-    //¾ØÐÎÇøÓò
+    //ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
     Gdiplus::RectF rect_gdiplus = CGdiPlusHelper::CRectToGdiplusRect(rect);
 
-    //»æÖÆ±³¾°
+    //ï¿½ï¿½ï¿½Æ±ï¿½ï¿½ï¿½
     if (draw_back_ground)
     {
         Gdiplus::SolidBrush brush(m_back_color);
         m_pGraphics->FillRectangle(&brush, rect_gdiplus);
     }
-    //ÉèÖÃ×ÖÌå
+    //ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
     Gdiplus::Font font(m_pDC->GetSafeHdc());
-    //ÉèÖÃÎÄ±¾ÑÕÉ«
+    //ï¿½ï¿½ï¿½ï¿½ï¿½Ä±ï¿½ï¿½ï¿½É«
     Gdiplus::SolidBrush brush(CGdiPlusHelper::COLORREFToGdiplusColor(color, alpha));
-    //ÉèÖÃ¶ÔÆë·½Ê½
+    //ï¿½ï¿½ï¿½Ã¶ï¿½ï¿½ë·½Ê½
     Gdiplus::StringFormat format;
     Gdiplus::StringAlignment alignment = Gdiplus::StringAlignmentNear;
     if (align == Alignment::CENTER)
         alignment = Gdiplus::StringAlignmentCenter;
     else if (align == Alignment::RIGHT)
         alignment = Gdiplus::StringAlignmentFar;
-    format.SetAlignment(alignment);    //Ë®Æ½¶ÔÆë·½Ê½
-    format.SetLineAlignment(Gdiplus::StringAlignmentCenter);    //´¹Ö±¶ÔÆë·½Ê½
+    format.SetAlignment(alignment);    //Ë®Æ½ï¿½ï¿½ï¿½ë·½Ê½
+    format.SetLineAlignment(Gdiplus::StringAlignmentCenter);    //ï¿½ï¿½Ö±ï¿½ï¿½ï¿½ë·½Ê½
     UINT flags = Gdiplus::StringFormatFlagsNoFitBlackBox;
     if (!multi_line)
-        flags |= Gdiplus::StringFormatFlagsNoWrap;      //²»×Ô¶¯»»ÐÐ
-    format.SetTrimming(Gdiplus::StringTrimmingNone);    //½ûÖ¹ÎÄ±¾½Ø¶Ï
+        flags |= Gdiplus::StringFormatFlagsNoWrap;      //ï¿½ï¿½ï¿½Ô¶ï¿½ï¿½ï¿½ï¿½ï¿½
+    format.SetTrimming(Gdiplus::StringTrimmingNone);    //ï¿½ï¿½Ö¹ï¿½Ä±ï¿½ï¿½Ø¶ï¿½
     format.SetFormatFlags(flags);
 
-    //»æÖÆÎÄ±¾
+    //ï¿½ï¿½ï¿½ï¿½ï¿½Ä±ï¿½
     m_pGraphics->DrawString(lpszString, -1, &font, rect_gdiplus, &format, &brush);
 }
 

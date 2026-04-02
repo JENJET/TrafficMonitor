@@ -92,6 +92,8 @@ bool CTaskbarItemOrderHelper::IsItemDisplayed(CommonDisplayItem item)
 			displayed = false;
         if ((item == TDI_CPU_TEMP) && !theApp.m_general_data.IsHardwareEnable(HI_CPU))
             displayed = false;
+        if ((item == TDI_GPU_POWER) && !theApp.m_general_data.IsHardwareEnable(HI_GPU))
+            displayed = false;
         if ((item == TDI_GPU_TEMP) && !theApp.m_general_data.IsHardwareEnable(HI_GPU))
             displayed = false;
         if ((item == TDI_HDD_TEMP) && !theApp.m_general_data.IsHardwareEnable(HI_HDD))

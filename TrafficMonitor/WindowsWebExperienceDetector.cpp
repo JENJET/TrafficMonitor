@@ -1,4 +1,4 @@
-#include "stdafx.h"
+﻿#include "stdafx.h"
 #include "WindowsWebExperienceDetector.h"
 #ifndef DISABLE_WINDOWS_WEB_EXPERIENCE_DETECTOR
 #include <winrt/Windows.Foundation.Collections.h>

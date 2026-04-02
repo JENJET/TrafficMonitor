@@ -1,15 +1,15 @@
-#pragma once
+ï»¿#pragma once
 class CWindowsSettingHelper
 {
 public:
-    static bool IsWindows10LightTheme();				//ÅÐ¶ÏWindowsÊÇ·ñÎªÇ³É«Ö÷Ìâ
+    static bool IsWindows10LightTheme();				//ï¿½Ð¶ï¿½Windowsï¿½Ç·ï¿½ÎªÇ³É«ï¿½ï¿½ï¿½ï¿½
     static void CheckWindows10LightTheme();
-    static bool IsDotNetFramework4Point5Installed();	//ÅÐ¶ÏÊÇ·ñ°²×°ÁË.Net Framework 4.5 (https://docs.microsoft.com/zh-cn/dotnet/framework/migration-guide/how-to-determine-which-versions-are-installed)
-    static bool IsTaskbarShowingInAllDisplays();        //ÊÇ·ñÔÚËùÓÐÏÔÊ¾Æ÷ÉÏÏÔÊ¾ÁËÈÎÎñÀ¸
+    static bool IsDotNetFramework4Point5Installed();	//ï¿½Ð¶ï¿½ï¿½Ç·ï¿½×°ï¿½ï¿½.Net Framework 4.5 (https://docs.microsoft.com/zh-cn/dotnet/framework/migration-guide/how-to-determine-which-versions-are-installed)
+    static bool IsTaskbarShowingInAllDisplays();        //ï¿½Ç·ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ê¾ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ê¾ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 
-    //Windows11Ïà¹ØÉèÖÃ
-    static bool IsTaskbarWidgetsBtnShown();             //ÈÎÎñÀ¸ÊÇ·ñÏÔÊ¾ÁË¡°Ð¡×é¼þ¡±°´Å¥
-    static bool IsTaskbarCenterAlign();                  //ÈÎÎñÀ¸ÊÇ·ñ¾ÓÖÐ
+    //Windows11ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+    static bool IsTaskbarWidgetsBtnShown();             //ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ç·ï¿½ï¿½ï¿½Ê¾ï¿½Ë¡ï¿½Ð¡ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Å¥
+    static bool IsTaskbarCenterAlign();                  //ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ç·ï¿½ï¿½ï¿½ï¿½
 
 private:
     static LONG GetDWORDRegKeyData(HKEY hKey, const wstring& strValueName, DWORD& dwValueData);

@@ -185,7 +185,7 @@ CString CTrafficMonitorDlg::GetMouseTipsInfo()
 #ifndef WITHOUT_HARDWAREMONITOR
     if (IsHardwareMonitorNeeded())
     {
-        if (theApp.m_general_data.IsHardwareEnable(HI_CPU) && !skin_layout.GetItem(TDI_CPU_POWER).show && theApp.m_cpu_power > 0)
+        if (theApp.m_general_data.IsHardwareEnable(HI_CPU) && !skin_layout.GetItem(TDI_CPU_POWER).show && theApp.m_cpu_power >= 0)
         {
             temp.Format(_T("\r\n%s: %s"), CCommon::LoadText(IDS_CPU_POWER), CCommon::PowerToString(theApp.m_cpu_power, theApp.m_main_wnd_data));
             tip_info += temp;
@@ -193,6 +193,11 @@ CString CTrafficMonitorDlg::GetMouseTipsInfo()
         if (theApp.m_general_data.IsHardwareEnable(HI_CPU) && !skin_layout.GetItem(TDI_CPU_TEMP).show && theApp.m_cpu_temperature > 0)
         {
             temp.Format(_T("\r\n%s: %s"), CCommon::LoadText(IDS_CPU_TEMPERATURE), CCommon::TemperatureToString(theApp.m_cpu_temperature, theApp.m_main_wnd_data));
+            tip_info += temp;
+        }
+        if (theApp.m_general_data.IsHardwareEnable(HI_GPU) && !skin_layout.GetItem(TDI_GPU_POWER).show && theApp.m_gpu_power >= 0)
+        {
+            temp.Format(_T("\r\n%s: %s"), CCommon::LoadText(IDS_GPU_POWER), CCommon::PowerToString(theApp.m_gpu_power, theApp.m_main_wnd_data));
             tip_info += temp;
         }
         if (theApp.m_general_data.IsHardwareEnable(HI_GPU) && !skin_layout.GetItem(TDI_GPU_TEMP).show && theApp.m_gpu_temperature > 0)
@@ -1466,6 +1471,8 @@ void CTrafficMonitorDlg::DoMonitorAcquisition()
             theApp.m_cpu_usage = theApp.m_pMonitor->CpuUsage();
 		//获取CPU功率
         theApp.m_cpu_power = theApp.m_pMonitor->CpuPower();
+        //获取GPU功率
+        theApp.m_gpu_power = theApp.m_pMonitor->GpuPower();
         //获取CPU温度
         if (!theApp.m_pMonitor->AllCpuTemperature().empty())
         {

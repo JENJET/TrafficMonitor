@@ -1,4 +1,4 @@
-#include "stdafx.h"
+ï»¿#include "stdafx.h"
 #include "WIC.h"
 #include "TrafficMonitor.h"
 
@@ -7,7 +7,7 @@ CWICFactory CWICFactory::m_instance;
 CWICFactory::CWICFactory()
 {
 #ifndef COMPILE_IN_WIN_XP
-    //³õÊ¼»¯m_pWICFactory
+    //ï¿½ï¿½Ê¼ï¿½ï¿½m_pWICFactory
     _hrOleInit = ::OleInitialize(NULL);
     CoCreateInstance(CLSID_WICImagingFactory, NULL, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&m_pWICFactory));
     if (m_pWICFactory == nullptr)
@@ -45,7 +45,7 @@ CMenuIcon::~CMenuIcon()
 
 HRESULT CMenuIcon::AddIconToMenuItem(HMENU hmenu, int iMenuItem, BOOL fByPosition, HICON hicon)
 {
-    //ÓÉÓÚWine»·¾³ÏÂ²Ëµ¥Í¼±ê»á³öÏÖÒì³££¬Òò´Ë²»Îª²Ëµ¥Ìí¼ÓÍ¼±ê
+    //ï¿½ï¿½ï¿½ï¿½Wineï¿½ï¿½ï¿½ï¿½ï¿½Â²Ëµï¿½Í¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ì³£ï¿½ï¿½ï¿½ï¿½Ë²ï¿½Îªï¿½Ëµï¿½ï¿½ï¿½ï¿½Í¼ï¿½ï¿½
     if (theApp.m_win_version.IsWine())
         return 0;
 

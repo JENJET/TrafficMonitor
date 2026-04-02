@@ -55,6 +55,7 @@ public:
     float m_cpu_power{ -1 }; //CPU 功率（W）
     float m_cpu_freq{ -1 };  //CPU 频率
     float m_gpu_temperature{ -1 };  //显卡温度
+    float m_gpu_power{ -1 }; //GPU 功率（W）
     float m_hdd_temperature{ -1 };  //硬盘温度
     float m_main_board_temperature{ -1 };    //主板温度
     int m_gpu_usage{ -1 };      //显卡利用率

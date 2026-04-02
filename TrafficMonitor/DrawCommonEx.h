@@ -1,8 +1,8 @@
-#pragma once
+ï»¿#pragma once
 #include "IDrawCommon.h"
 #include <gdiplus.h>
 
-//Ê¹ÓÃGDI+µÄ»æÍ¼Àà
+//Ê¹ï¿½ï¿½GDI+ï¿½Ä»ï¿½Í¼ï¿½ï¿½
 class CDrawCommonEx : public IDrawCommon
 {
 public:
@@ -14,10 +14,10 @@ public:
     void SetFont(CFont* pFont);
     Gdiplus::Graphics* GetGraphics() { return m_pGraphics; }
 
-    //»æÖÆÒ»¸öGDI+Í¼Ïñ
+    //ï¿½ï¿½ï¿½ï¿½Ò»ï¿½ï¿½GDI+Í¼ï¿½ï¿½
     void DrawImage(Gdiplus::Image* pImage, CPoint start_point, CSize size, StretchMode stretch_mode);
 
-    // Í¨¹ý IDrawCommon ¼Ì³Ð
+    // Í¨ï¿½ï¿½ IDrawCommon ï¿½Ì³ï¿½
     void SetBackColor(COLORREF back_color, BYTE alpha) override;
     void DrawWindowText(CRect rect, LPCTSTR lpszString, COLORREF color, Alignment align, bool draw_back_ground, bool multi_line, BYTE alpha) override;
     void SetDrawRect(CRect rect) override;
