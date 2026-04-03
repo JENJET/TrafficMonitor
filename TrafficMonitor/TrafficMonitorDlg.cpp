@@ -195,10 +195,26 @@ CString CTrafficMonitorDlg::GetMouseTipsInfo()
             temp.Format(_T("\r\n%s: %s"), CCommon::LoadText(IDS_CPU_TEMPERATURE), CCommon::TemperatureToString(theApp.m_cpu_temperature, theApp.m_main_wnd_data));
             tip_info += temp;
         }
-        if (theApp.m_general_data.IsHardwareEnable(HI_GPU) && !skin_layout.GetItem(TDI_GPU_POWER).show && theApp.m_gpu_power >= 0)
+        if (theApp.m_general_data.IsHardwareEnable(HI_GPU) && !skin_layout.GetItem(TDI_GPU_POWER).show && !theApp.m_all_gpu_power.empty())
         {
-            temp.Format(_T("\r\n%s: %s"), CCommon::LoadText(IDS_GPU_POWER), CCommon::PowerToString(theApp.m_gpu_power, theApp.m_main_wnd_data));
-            tip_info += temp;
+            if (theApp.m_all_gpu_power.size() == 1)
+            {
+                temp.Format(_T("\r\n%s: %s"), CCommon::LoadText(IDS_GPU_POWER), CCommon::PowerToString(theApp.m_all_gpu_power.begin()->second, theApp.m_main_wnd_data));
+                tip_info += temp;
+            }
+            else
+            {
+                // 多个 GPU 时，显示所有 GPU 的功率
+                for (const auto& gpu : theApp.m_all_gpu_power)
+                {
+                    CString device_name = gpu.first.c_str();
+                    int pos = device_name.ReverseFind(L' ');
+                    if (pos != -1)
+                        device_name = device_name.Mid(pos + 1);
+                    temp.Format(_T("\r\n%s (%s): %s"), CCommon::LoadText(IDS_GPU_POWER), device_name, CCommon::PowerToString(gpu.second, theApp.m_main_wnd_data));
+                    tip_info += temp;
+                }
+            }
         }
         if (theApp.m_general_data.IsHardwareEnable(HI_GPU) && !skin_layout.GetItem(TDI_GPU_TEMP).show && theApp.m_gpu_temperature > 0)
         {
@@ -1471,8 +1487,13 @@ void CTrafficMonitorDlg::DoMonitorAcquisition()
             theApp.m_cpu_usage = theApp.m_pMonitor->CpuUsage();
 		//获取CPU功率
         theApp.m_cpu_power = theApp.m_pMonitor->CpuPower();
-        //获取GPU功率
-        theApp.m_gpu_power = theApp.m_pMonitor->GpuPower();
+        //获取 GPU 功率
+        theApp.m_all_gpu_power = theApp.m_pMonitor->AllGpuPower();
+        //获取第一个 GPU 的功率（用于向后兼容）
+        if (!theApp.m_all_gpu_power.empty())
+            theApp.m_gpu_power = theApp.m_all_gpu_power.begin()->second;
+        else
+            theApp.m_gpu_power = -1;
         //获取CPU温度
         if (!theApp.m_pMonitor->AllCpuTemperature().empty())
         {

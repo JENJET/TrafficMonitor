@@ -51,14 +51,9 @@ namespace OpenHardwareMonitorApi
         return m_cpu_power;
     }
 
-    float COpenHardwareMonitor::GpuPower()
+    const std::map<std::wstring, float>& COpenHardwareMonitor::AllGpuPower()
     {
-        if (m_gpu_nvidia_power >= 0)
-            return m_gpu_nvidia_power;
-        else if (m_gpu_ati_power >= 0)
-            return m_gpu_ati_power;
-        else
-            return m_gpu_intel_power;
+        return m_all_gpu_power;
     }
 
     float COpenHardwareMonitor::CpuTemperature()
@@ -404,9 +399,7 @@ namespace OpenHardwareMonitorApi
         m_gpu_nvidia_temperature = -1;
         m_gpu_ati_temperature = -1;
         m_gpu_intel_temperature = -1;
-        m_gpu_nvidia_power = -1;
-        m_gpu_ati_power = -1;
-        m_gpu_intel_power = -1;
+        m_all_gpu_power.clear();
         m_hdd_temperature = -1;
         m_main_board_temperature = -1;
         m_gpu_nvidia_usage = -1;
@@ -473,24 +466,39 @@ namespace OpenHardwareMonitorApi
                         GetHardwareTemperature(computer->Hardware[i], m_gpu_nvidia_temperature);
                     if (m_gpu_nvidia_usage < 0)
                         GetGpuUsage(computer->Hardware[i], m_gpu_nvidia_usage);
-                    if (m_gpu_nvidia_power < 0)
-                        GetGpuPower(computer->Hardware[i], m_gpu_nvidia_power);
+                    {
+                        float gpu_power = -1;
+                        if (GetGpuPower(computer->Hardware[i], gpu_power))
+                        {
+                            InsertValueToMap(m_all_gpu_power, ClrStringToStdWstring(computer->Hardware[i]->Name), gpu_power);
+                        }
+                    }
                     break;
                 case HardwareType::GpuAmd:
                     if (m_gpu_ati_temperature < 0)
                         GetHardwareTemperature(computer->Hardware[i], m_gpu_ati_temperature);
                     if (m_gpu_ati_usage < 0)
                         GetGpuUsage(computer->Hardware[i], m_gpu_ati_usage);
-                    if (m_gpu_ati_power < 0)
-                        GetGpuPower(computer->Hardware[i], m_gpu_ati_power);
+                    {
+                        float gpu_power = -1;
+                        if (GetGpuPower(computer->Hardware[i], gpu_power))
+                        {
+                            InsertValueToMap(m_all_gpu_power, ClrStringToStdWstring(computer->Hardware[i]->Name), gpu_power);
+                        }
+                    }
                     break;
                 case HardwareType::GpuIntel:
                     if (m_gpu_intel_temperature < 0)
                         GetHardwareTemperature(computer->Hardware[i], m_gpu_intel_temperature);
                     if (m_gpu_intel_usage < 0)
                         GetGpuUsage(computer->Hardware[i], m_gpu_intel_usage);
-                    if (m_gpu_intel_power < 0)
-                        GetGpuPower(computer->Hardware[i], m_gpu_intel_power);
+                    {
+                        float gpu_power = -1;
+                        if (GetGpuPower(computer->Hardware[i], gpu_power))
+                        {
+                            InsertValueToMap(m_all_gpu_power, ClrStringToStdWstring(computer->Hardware[i]->Name), gpu_power);
+                        }
+                    }
                     break;
                 case HardwareType::Storage:
                 {

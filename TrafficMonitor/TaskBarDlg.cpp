@@ -324,7 +324,11 @@ void CTaskBarDlg::DrawDisplayItem(IDrawCommon& drawer, DisplayItem type, CRect r
             figure_value = theApp.m_cpu_power;
             break;
         case TDI_GPU_POWER:
-            figure_value = theApp.m_gpu_power;
+            // 图表显示使用第一个 GPU 的功率
+            if (!theApp.m_all_gpu_power.empty())
+                figure_value = theApp.m_all_gpu_power.begin()->second;
+            else
+                figure_value = theApp.m_gpu_power;
             break;
         case TDI_CPU_TEMP:
             figure_value = theApp.m_cpu_temperature;
@@ -777,10 +781,26 @@ CString CTaskBarDlg::GetMouseTipsInfo()
             temp.Format(_T("\r\n%s: %s"), CCommon::LoadText(IDS_CPU_TEMPERATURE), CCommon::TemperatureToString(theApp.m_cpu_temperature, theApp.m_taskbar_data));
             tip_info += temp;
         }
-        if (!IsItemShow(TDI_GPU_POWER) && theApp.m_gpu_power >= 0)
+        if (!IsItemShow(TDI_GPU_POWER) && !theApp.m_all_gpu_power.empty())
         {
-            temp.Format(_T("\r\n%s: %s"), CCommon::LoadText(IDS_GPU_POWER), CCommon::PowerToString(theApp.m_gpu_power, theApp.m_taskbar_data));
-            tip_info += temp;
+            if (theApp.m_all_gpu_power.size() == 1)
+            {
+                temp.Format(_T("\r\n%s: %s"), CCommon::LoadText(IDS_GPU_POWER), CCommon::PowerToString(theApp.m_all_gpu_power.begin()->second, theApp.m_taskbar_data));
+                tip_info += temp;
+            }
+            else
+            {
+                // 多个 GPU 时，显示所有 GPU 的功率
+                for (const auto& gpu : theApp.m_all_gpu_power)
+                {
+                    CString device_name = gpu.first.c_str();
+                    int pos = device_name.ReverseFind(L' ');
+                    if (pos != -1)
+                        device_name = device_name.Mid(pos + 1);
+                    temp.Format(_T("\r\n%s (%s): %s"), CCommon::LoadText(IDS_GPU_POWER), device_name, CCommon::PowerToString(gpu.second, theApp.m_taskbar_data));
+                    tip_info += temp;
+                }
+            }
         }
         if (!IsItemShow(TDI_GPU_TEMP) && theApp.m_gpu_temperature > 0)
         {

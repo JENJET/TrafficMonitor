@@ -20,8 +20,8 @@ namespace OpenHardwareMonitorApi {
         virtual void GetHardwareInfo() override;
         virtual float CpuPower() override;
         virtual float CpuTemperature() override;
+        virtual const std::map<std::wstring, float>& AllGpuPower() override;     //返回所有 GPU 的功率
         virtual float GpuTemperature() override;
-        virtual float GpuPower() override;
         virtual float HDDTemperature() override;
         virtual float MainboardTemperature() override;
         virtual float GpuUsage() override;
@@ -55,9 +55,7 @@ namespace OpenHardwareMonitorApi {
         float m_gpu_nvidia_temperature{};
         float m_gpu_ati_temperature{};
         float m_gpu_intel_temperature{};
-        float m_gpu_nvidia_power{};
-        float m_gpu_ati_power{};
-        float m_gpu_intel_power{};
+        std::map<std::wstring, float> m_all_gpu_power;  //所有 GPU 的功率
         float m_hdd_temperature{};
         float m_main_board_temperature{};
         float m_gpu_nvidia_usage{};

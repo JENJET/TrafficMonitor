@@ -1415,7 +1415,12 @@ double CTrafficMonitorApp::GetMonitorValue(MonitorItem item)
     case MI_GPU_USAGE: return m_gpu_usage;
     case MI_CPU_TEMP: return m_cpu_temperature;
     case MI_CPU_POWER: return m_cpu_power;
-    case MI_GPU_POWER: return m_gpu_power;
+    case MI_GPU_POWER:
+        // 返回第一个 GPU 的功率（用于兼容）
+        if (!m_all_gpu_power.empty())
+            return m_all_gpu_power.begin()->second;
+        else
+            return m_gpu_power;
     case MI_GPU_TEMP: return m_gpu_temperature;
     case MI_HDD_TEMP: return m_hdd_temperature;
     case MI_MAIN_BOARD_TEMP: return m_main_board_temperature;

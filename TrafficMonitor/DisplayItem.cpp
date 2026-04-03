@@ -258,9 +258,36 @@ CString CommonDisplayItem::GetItemValueText(bool is_main_window) const
         case TDI_CPU_POWER:
             str_value = CCommon::PowerToString(theApp.m_cpu_power, *cfg_data);
             break;
-        //GPU功率
+        //GPU 功率
         case TDI_GPU_POWER:
-            str_value = CCommon::PowerToString(theApp.m_gpu_power, *cfg_data);
+            if (theApp.m_all_gpu_power.empty())
+            {
+                str_value = CCommon::PowerToString(theApp.m_gpu_power, *cfg_data);
+            }
+            else if (theApp.m_all_gpu_power.size() == 1)
+            {
+                // 只有一个 GPU 时，显示功率值
+                str_value = CCommon::PowerToString(theApp.m_all_gpu_power.begin()->second, *cfg_data);
+            }
+            else
+            {
+                // 多个 GPU 时，显示所有 GPU 的功率，带设备名后缀
+                CString temp_str;
+                for (const auto& gpu : theApp.m_all_gpu_power)
+                {
+                    CString device_name = gpu.first.c_str();
+                    // 简化设备名，只保留最后一部分
+                    int pos = device_name.ReverseFind(L' ');
+                    if (pos != -1)
+                        device_name = device_name.Mid(pos + 1);
+                            
+                    temp_str += CCommon::PowerToString(gpu.second, *cfg_data) + L" (" + device_name + L")  ";
+                }
+                // 去掉末尾多余的空格
+                if (!temp_str.IsEmpty() && temp_str.GetAt(temp_str.GetLength() - 1) == L' ')
+                    temp_str = temp_str.Left(temp_str.GetLength() - 1);
+                str_value = temp_str;
+            }
             break;
         //CPU温度
         case TDI_CPU_TEMP:

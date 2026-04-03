@@ -51,11 +51,12 @@ public:
     int m_memory_usage{ -1 };   //内存利用率
     int m_used_memory{};    //可用物理内存（单位为KB）
     int m_total_memory{};   //物理内存总量（单位为KB）
-    float m_cpu_temperature{ -1 };  //CPU温度
+    float m_cpu_temperature{ -1 };  //CPU 温度
     float m_cpu_power{ -1 }; //CPU 功率（W）
     float m_cpu_freq{ -1 };  //CPU 频率
     float m_gpu_temperature{ -1 };  //显卡温度
-    float m_gpu_power{ -1 }; //GPU 功率（W）
+    float m_gpu_power{ -1 }; //GPU 功率（W）（第一个 GPU 的功率，用于兼容）
+    std::map<std::wstring, float> m_all_gpu_power;  //所有 GPU 的功率，map 的 key 是 GPU 名称，value 是功率
     float m_hdd_temperature{ -1 };  //硬盘温度
     float m_main_board_temperature{ -1 };    //主板温度
     int m_gpu_usage{ -1 };      //显卡利用率
