@@ -433,11 +433,6 @@ void CTrafficMonitorApp::SaveConfig()
     ini.WriteString(L"task_bar", L"item_order", m_taskbar_data.item_order.ToString());
     ini.WriteString(L"task_bar", L"plugin_display_item", m_taskbar_data.plugin_display_item.ToString());
     // 保存已启用功率显示的GPU名称列表
-    TRACE(_T("SaveConfig: gpu_power_enabled_items count = %zu\n"), m_general_data.gpu_power_enabled_items.data().size());
-    for (const auto& gpu_name : m_general_data.gpu_power_enabled_items.ToVector())
-    {
-        TRACE(_T("  Saving: %s\n"), gpu_name.c_str());
-    }
     ini.WriteStringList(L"task_bar", L"gpu_power_enabled_items", m_general_data.gpu_power_enabled_items.ToVector());
     ini.WriteBool(L"task_bar", L"auto_save_taskbar_color_settings_to_preset", m_taskbar_data.auto_save_taskbar_color_settings_to_preset);
 

@@ -118,13 +118,6 @@ bool CTaskbarItemOrderHelper::IsItemDisplayed(CommonDisplayItem item)
             displayed = false;
         if ((item == TDI_GPU_POWER) && !theApp.m_general_data.IsHardwareEnable(HI_GPU))
             displayed = false;
-        // 对于GPU功率项，只要GPU监控启用就显示，不检查gpu_power_enabled_items
-        // gpu_power_enabled_items只用于控制实际绘制时是否显示
-        // if (item.IsGpuPowerItem())
-        // {
-        //     if (!theApp.m_general_data.gpu_power_enabled_items.Contains(item.GetGpuDeviceName()))
-        //         displayed = false;
-        // }
         if ((item == TDI_GPU_TEMP) && !theApp.m_general_data.IsHardwareEnable(HI_GPU))
             displayed = false;
         if ((item == TDI_HDD_TEMP) && !theApp.m_general_data.IsHardwareEnable(HI_HDD))

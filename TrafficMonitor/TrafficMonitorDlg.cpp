@@ -779,13 +779,6 @@ void CTrafficMonitorDlg::ApplySettings(COptionsDlg& optionsDlg)
 
     // 保存可能被SetItemOrderDlg修改的gpu_power_enabled_items
     StringSet saved_gpu_power_enabled_items = theApp.m_general_data.gpu_power_enabled_items;
-    
-    // 调试输出
-    TRACE(_T("Before ApplySettings: gpu_power_enabled_items count = %zu\n"), saved_gpu_power_enabled_items.data().size());
-    for (const auto& gpu_name : saved_gpu_power_enabled_items.ToVector())
-    {
-        TRACE(_T("  - %s\n"), gpu_name.c_str());
-    }
 
     theApp.m_main_wnd_data = optionsDlg.m_tab1_dlg.m_data;
     theApp.m_taskbar_data = optionsDlg.m_tab2_dlg.m_data;
@@ -793,13 +786,6 @@ void CTrafficMonitorDlg::ApplySettings(COptionsDlg& optionsDlg)
     
     // 恢复gpu_power_enabled_items（如果它在选项对话框打开后被修改过）
     theApp.m_general_data.gpu_power_enabled_items = saved_gpu_power_enabled_items;
-    
-    // 调试输出
-    TRACE(_T("After restore: gpu_power_enabled_items count = %zu\n"), theApp.m_general_data.gpu_power_enabled_items.data().size());
-    for (const auto& gpu_name : theApp.m_general_data.gpu_power_enabled_items.ToVector())
-    {
-        TRACE(_T("  - %s\n"), gpu_name.c_str());
-    }
     
     theApp.SendSettingsToPlugin();
 
@@ -2927,7 +2913,6 @@ afx_msg LRESULT CTrafficMonitorDlg::OnDpichanged(WPARAM wParam, LPARAM lParam)
         UINT dpi_x, dpi_y;
         if (theApp.DPIFromRect(rect, &dpi_x, &dpi_y))   //获取成功，则使用根据主窗口位置得到的dpi
             dpi = dpi_x;
-        TRACE("Dpi changed: %d\n", dpi);
 
         theApp.SetDPI(dpi);
         //当系统版本小于Windows 8.1时使用原来的行为
