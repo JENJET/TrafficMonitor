@@ -18,6 +18,7 @@
 #include "WineTaskbarDlg.h"
 #include "TaskbarHelper.h"
 #include "SkinManager.h"
+#include "SettingsHelper.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -197,23 +198,20 @@ CString CTrafficMonitorDlg::GetMouseTipsInfo()
         }
         if (theApp.m_general_data.IsHardwareEnable(HI_GPU) && !skin_layout.GetItem(TDI_GPU_POWER).show && !theApp.m_all_gpu_power.empty())
         {
-            if (theApp.m_all_gpu_power.size() == 1)
+            // 显示所有 GPU 的功率
+            for (const auto& gpu : theApp.m_all_gpu_power)
             {
-                temp.Format(_T("\r\n%s: %s"), CCommon::LoadText(IDS_GPU_POWER), CCommon::PowerToString(theApp.m_all_gpu_power.begin()->second, theApp.m_main_wnd_data));
-                tip_info += temp;
-            }
-            else
-            {
-                // 多个 GPU 时，显示所有 GPU 的功率
-                for (const auto& gpu : theApp.m_all_gpu_power)
+                CommonDisplayItem gpu_item(TDI_GPU_POWER, gpu.first);
+                
+                // 获取标签文本：优先使用disp_str中的自定义文本，如果为空则使用默认文本
+                wstring label_text = theApp.m_main_wnd_data.disp_str.GetConst(gpu_item);
+                if (label_text.empty())
                 {
-                    CString device_name = gpu.first.c_str();
-                    int pos = device_name.ReverseFind(L' ');
-                    if (pos != -1)
-                        device_name = device_name.Mid(pos + 1);
-                    temp.Format(_T("\r\n%s (%s): %s"), CCommon::LoadText(IDS_GPU_POWER), device_name, CCommon::PowerToString(gpu.second, theApp.m_main_wnd_data));
-                    tip_info += temp;
+                    label_text = gpu_item.GetItemName() + _T(": ");
                 }
+                
+                temp.Format(_T("\r\n%s%s"), label_text.c_str(), CCommon::PowerToString(gpu.second, theApp.m_main_wnd_data));
+                tip_info += temp;
             }
         }
         if (theApp.m_general_data.IsHardwareEnable(HI_GPU) && !skin_layout.GetItem(TDI_GPU_TEMP).show && theApp.m_gpu_temperature > 0)
@@ -779,9 +777,30 @@ void CTrafficMonitorDlg::ApplySettings(COptionsDlg& optionsDlg)
         );
     bool is_skin_data_changed = (theApp.m_main_wnd_data.ToSkinSettingData() != optionsDlg.m_tab1_dlg.m_data.ToSkinSettingData());
 
+    // 保存可能被SetItemOrderDlg修改的gpu_power_enabled_items
+    StringSet saved_gpu_power_enabled_items = theApp.m_general_data.gpu_power_enabled_items;
+    
+    // 调试输出
+    TRACE(_T("Before ApplySettings: gpu_power_enabled_items count = %zu\n"), saved_gpu_power_enabled_items.data().size());
+    for (const auto& gpu_name : saved_gpu_power_enabled_items.ToVector())
+    {
+        TRACE(_T("  - %s\n"), gpu_name.c_str());
+    }
+
     theApp.m_main_wnd_data = optionsDlg.m_tab1_dlg.m_data;
     theApp.m_taskbar_data = optionsDlg.m_tab2_dlg.m_data;
     theApp.m_general_data = optionsDlg.m_tab3_dlg.m_data;
+    
+    // 恢复gpu_power_enabled_items（如果它在选项对话框打开后被修改过）
+    theApp.m_general_data.gpu_power_enabled_items = saved_gpu_power_enabled_items;
+    
+    // 调试输出
+    TRACE(_T("After restore: gpu_power_enabled_items count = %zu\n"), theApp.m_general_data.gpu_power_enabled_items.data().size());
+    for (const auto& gpu_name : theApp.m_general_data.gpu_power_enabled_items.ToVector())
+    {
+        TRACE(_T("  - %s\n"), gpu_name.c_str());
+    }
+    
     theApp.SendSettingsToPlugin();
 
     CGeneralSettingsDlg::CheckTaskbarDisplayItem();
@@ -1494,6 +1513,42 @@ void CTrafficMonitorDlg::DoMonitorAcquisition()
             theApp.m_gpu_power = theApp.m_all_gpu_power.begin()->second;
         else
             theApp.m_gpu_power = -1;
+        
+        // 检测GPU列表变化，如有变化则刷新显示项
+        static std::set<std::wstring> last_gpu_names;
+        std::set<std::wstring> current_gpu_names;
+        for (const auto& gpu : theApp.m_all_gpu_power) {
+            current_gpu_names.insert(gpu.first);
+        }
+        if (current_gpu_names != last_gpu_names) {
+            // GPU列表发生变化，刷新显示项
+            theApp.m_taskbar_data.item_order.RefreshGpuPowerItems();
+            last_gpu_names = current_gpu_names;
+            
+            // 重新加载GPU功率项的配置到disp_str中
+            CSettingsHelper ini(theApp.m_config_path);
+            for (const auto& gpu_pair : theApp.m_all_gpu_power)
+            {
+                CommonDisplayItem gpu_item(TDI_GPU_POWER, gpu_pair.first);
+                std::wstring str;
+                // 尝试从配置文件加载，如果不存在则使用默认值
+                bool found = ini.GetString(L"task_bar", gpu_item.GetItemIniKeyName().c_str(), str);
+                
+                // 无论配置是否存在，都添加到disp_str中
+                if (!found)
+                {
+                    // 配置文件中没有，使用默认值
+                    str = gpu_item.DefaultString(false);
+                }
+                theApp.m_taskbar_data.disp_str.Get(gpu_item) = str;
+            }
+            
+            // 重新计算任务栏窗口宽度
+            if (IsTaskbarWndValid())
+            {
+                m_tBarDlg->WidthChanged();
+            }
+        }
         //获取CPU温度
         if (!theApp.m_pMonitor->AllCpuTemperature().empty())
         {
@@ -2985,11 +3040,17 @@ void CTrafficMonitorDlg::OnDisplaySettings()
     dlg.SetItemOrder(theApp.m_taskbar_data.item_order.GetItemOrderConst());
     dlg.SetDisplayItem(theApp.m_taskbar_data.display_item);
     dlg.SetPluginDisplayItem(theApp.m_taskbar_data.plugin_display_item);
+    dlg.SetGpuPowerEnabledItems(theApp.m_general_data.gpu_power_enabled_items);
     if (dlg.DoModal() == IDOK)
     {
         theApp.m_taskbar_data.item_order.SetOrder(dlg.GetItemOrder());
         theApp.m_taskbar_data.display_item = dlg.GetDisplayItem();
         theApp.m_taskbar_data.plugin_display_item = dlg.GetPluginDisplayItem();
+        theApp.m_general_data.gpu_power_enabled_items = dlg.GetGpuPowerEnabledItems();
+        
+        // 保存配置，包括 gpu_power_enabled_items
+        theApp.SaveConfig();
+        
         //CloseTaskBarWnd();
         //OpenTaskBarWnd();
         if (IsTaskbarWndValid())

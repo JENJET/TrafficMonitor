@@ -38,6 +38,7 @@ public:
     CommonDisplayItem() {}
     CommonDisplayItem(DisplayItem item);
     CommonDisplayItem(IPluginItem* item);
+    CommonDisplayItem(DisplayItem item, const std::wstring& gpu_name);  //用于GPU功率项，指定GPU设备名称
 
     bool operator<(const CommonDisplayItem&) const;
     bool operator==(const CommonDisplayItem&) const;
@@ -51,6 +52,12 @@ public:
     //获取插件显示项目
     IPluginItem* PluginItem() const;
 
+    //获取GPU设备名称（仅对GPU功率项有效）
+    const std::wstring& GetGpuDeviceName() const;
+    
+    //判断是否为GPU功率显示项
+    bool IsGpuPowerItem() const;
+
     //获取显示项目的名称
     CString GetItemName() const;
 
@@ -58,7 +65,7 @@ public:
     std::wstring DefaultString(bool is_main_window) const;
 
     //获取一个显示项目的显示文本保存在ini文件中的key的名称
-    const wchar_t* GetItemIniKeyName() const;
+    std::wstring GetItemIniKeyName() const;
 
     /**
      * @brief   获取一个显示项目的数值文本
@@ -78,6 +85,7 @@ private:
     bool is_plugin{};           //是否为插件项目
     DisplayItem item_type{};    //内置的显示项目
     IPluginItem* plugin_item{}; //插件显示项目
+    std::wstring gpu_device_name;  //GPU设备名称（仅当item_type==TDI_GPU_POWER时有效）
 };
 
 

@@ -169,11 +169,11 @@ protected:
 
     //绘制任务栏窗口中的一个显示项目
     //  drawer: 绘图类的对象
-    //  type: 项目的类型
+    //  item: 显示项目（包含GPU设备名称等信息）
     //  rect: 绘制矩形区域
     //  label_width: 标签区域的宽度
     //  vertical: 如果为true，则标签和数值上下显示
-    void DrawDisplayItem(IDrawCommon& drawer, DisplayItem type, CRect rect, int label_width, bool vertical = false);
+    void DrawDisplayItem(IDrawCommon& drawer, const CommonDisplayItem& item, CRect rect, int label_width, bool vertical = false);
 
     //绘制任务栏窗口中的一个插件项目
    //  drawer: 绘图类的对象

@@ -3,6 +3,46 @@
 #include "Common.h"
 #include "TrafficMonitor.h"
 
+// 辅助函数：简化GPU名称，去掉常见前缀和后缀
+static CString SimplifyGpuName(const std::wstring& gpu_device_name)
+{
+    if (gpu_device_name.empty())
+        return _T("");
+    
+    CString gpu_name = gpu_device_name.c_str();
+    
+    // 不区分大小写的替换函数
+    auto ReplaceCaseInsensitive = [](CString& str, const CString& target, const CString& replacement)
+    {
+        CString lower_str = str;
+        lower_str.MakeLower();
+        CString lower_target = target;
+        lower_target.MakeLower();
+        
+        int pos = lower_str.Find(lower_target);
+        while (pos != -1)
+        {
+            str.Delete(pos, target.GetLength());
+            str.Insert(pos, replacement);
+            lower_str = str;
+            lower_str.MakeLower();
+            pos = lower_str.Find(lower_target, pos + replacement.GetLength());
+        }
+    };
+    
+    // 去掉常见前缀（不区分大小写）
+    ReplaceCaseInsensitive(gpu_name, _T("AMD Radeon "), _T(""));
+    ReplaceCaseInsensitive(gpu_name, _T("NVIDIA GeForce "), _T(""));
+    ReplaceCaseInsensitive(gpu_name, _T("Intel(R) "), _T(""));
+    ReplaceCaseInsensitive(gpu_name, _T(" Graphics"), _T(""));
+    ReplaceCaseInsensitive(gpu_name, _T(" GPU"), _T(""));
+    
+    // 去掉多余空格
+    gpu_name.Trim();
+    
+    return gpu_name;
+}
+
 CommonDisplayItem::CommonDisplayItem(DisplayItem item)
 {
     is_plugin = false;
@@ -16,6 +56,14 @@ CommonDisplayItem::CommonDisplayItem(IPluginItem* item)
     plugin_item = item;
 }
 
+CommonDisplayItem::CommonDisplayItem(DisplayItem item, const std::wstring& gpu_name)
+{
+    is_plugin = false;
+    item_type = item;
+    plugin_item = nullptr;
+    gpu_device_name = gpu_name;
+}
+
 bool CommonDisplayItem::operator<(const CommonDisplayItem& item) const
 {
     if (is_plugin && !item.is_plugin)
@@ -23,7 +71,14 @@ bool CommonDisplayItem::operator<(const CommonDisplayItem& item) const
     else if (!is_plugin && item.is_plugin)
         return true;
     else if (!is_plugin)
-        return item_type < item.item_type;
+    {
+        if (item_type != item.item_type)
+            return item_type < item.item_type;
+        // 对于GPU功率项，按GPU名称排序
+        if (item_type == TDI_GPU_POWER)
+            return gpu_device_name < item.gpu_device_name;
+        return false;
+    }
     else
         return theApp.m_plugins.GetItemIndex(plugin_item) < theApp.m_plugins.GetItemIndex(item.plugin_item);
 }
@@ -33,7 +88,14 @@ bool CommonDisplayItem::operator==(const CommonDisplayItem& item) const
     if (is_plugin != item.is_plugin)
         return false;
     else if (!is_plugin)
-        return item_type == item.item_type;
+    {
+        if (item_type != item.item_type)
+            return false;
+        // 对于GPU功率项，还需要比较GPU名称
+        if (item_type == TDI_GPU_POWER)
+            return gpu_device_name == item.gpu_device_name;
+        return true;
+    }
     else
         return plugin_item == item.plugin_item;
 }
@@ -51,6 +113,16 @@ DisplayItem CommonDisplayItem::ItemType() const
 IPluginItem* CommonDisplayItem::PluginItem() const
 {
     return plugin_item;
+}
+
+const std::wstring& CommonDisplayItem::GetGpuDeviceName() const
+{
+    return gpu_device_name;
+}
+
+bool CommonDisplayItem::IsGpuPowerItem() const
+{
+    return item_type == TDI_GPU_POWER && !gpu_device_name.empty();
 }
 
 CString CommonDisplayItem::GetItemName() const
@@ -73,7 +145,14 @@ CString CommonDisplayItem::GetItemName() const
         case TDI_MEMORY: return CCommon::LoadText(IDS_MEMORY_USAGE);
         case TDI_GPU_USAGE: return CCommon::LoadText(IDS_GPU_USAGE);
         case TDI_CPU_POWER: return CCommon::LoadText(IDS_CPU_POWER);
-        case TDI_GPU_POWER: return CCommon::LoadText(IDS_GPU_POWER);
+        case TDI_GPU_POWER:
+            // 如果指定了GPU设备名称，简化显示为 "GPU功率 (简化型号)"
+            if (!gpu_device_name.empty())
+            {
+                CString gpu_name = SimplifyGpuName(gpu_device_name);
+                return CCommon::LoadText(IDS_GPU_POWER) + _T(" (") + gpu_name + _T(")");
+            }
+            return CCommon::LoadText(IDS_GPU_POWER);
         case TDI_CPU_TEMP: return CCommon::LoadText(IDS_CPU_TEMPERATURE);
         case TDI_GPU_TEMP: return CCommon::LoadText(IDS_GPU_TEMPERATURE);
         case TDI_HDD_TEMP: return CCommon::LoadText(IDS_HDD_TEMPERATURE);
@@ -126,7 +205,16 @@ std::wstring CommonDisplayItem::DefaultString(bool is_main_window) const
             default_text = CCommon::LoadText(IDS_CPU_POWER, _T(": "));
             break;
         case TDI_GPU_POWER:
-            default_text = CCommon::LoadText(IDS_GPU_POWER, _T(": "));
+            // 如果指定了GPU设备名称，生成带型号的默认字符串
+            if (!gpu_device_name.empty())
+            {
+                CString gpu_name = SimplifyGpuName(gpu_device_name);
+                default_text = CCommon::LoadText(IDS_GPU_POWER) + _T(" (") + gpu_name + _T("): ");
+            }
+            else
+            {
+                default_text = CCommon::LoadText(IDS_GPU_POWER, _T(": "));
+            }
             break;
         case TDI_CPU_TEMP:
             default_text = _T("CPU: ");
@@ -161,7 +249,7 @@ std::wstring CommonDisplayItem::DefaultString(bool is_main_window) const
     return default_text;
 }
 
-const wchar_t* CommonDisplayItem::GetItemIniKeyName() const
+std::wstring CommonDisplayItem::GetItemIniKeyName() const
 {
     if (is_plugin)
     {
@@ -177,7 +265,33 @@ const wchar_t* CommonDisplayItem::GetItemIniKeyName() const
         case TDI_MEMORY: return L"memory_string";
         case TDI_GPU_USAGE: return L"gpu_string";
         case TDI_CPU_POWER: return L"cpu_power_string";
-        case TDI_GPU_POWER: return L"gpu_power_string";
+        case TDI_GPU_POWER:
+            // 如果指定了GPU设备名称，生成唯一的key
+            if (!gpu_device_name.empty())
+            {
+                // 先简化GPU名称（与GetItemName()和DefaultString()保持一致）
+                CString gpu_name = SimplifyGpuName(gpu_device_name);
+                
+                // 将简化后的GPU名称中的特殊字符替换为下划线，以生成合法的ini key
+                std::wstring key = L"gpu_power_string_";
+                for (int i = 0; i < gpu_name.GetLength(); i++)
+                {
+                    wchar_t ch = gpu_name.GetAt(i);
+                    if (ch == L' ' || ch == L'(' || ch == L')' || ch == L'[' || ch == L']' || 
+                        ch == L'{' || ch == L'}' || ch == L'=' || ch == L';' || ch == L',' ||
+                        ch == L'/' || ch == L'\\' || ch == L'|' || ch == L':' || ch == L'*' ||
+                        ch == L'?' || ch == L'\"' || ch == L'<' || ch == L'>')
+                    {
+                        key += L'_';
+                    }
+                    else
+                    {
+                        key += ch;
+                    }
+                }
+                return key;
+            }
+            return L"gpu_power_string";
         case TDI_CPU_TEMP: return L"cpu_temp_string";
         case TDI_GPU_TEMP: return L"gpu_temp_string";
         case TDI_HDD_TEMP: return L"hdd_temp_string";
@@ -260,7 +374,21 @@ CString CommonDisplayItem::GetItemValueText(bool is_main_window) const
             break;
         //GPU 功率
         case TDI_GPU_POWER:
-            if (theApp.m_all_gpu_power.empty())
+            // 如果指定了GPU设备名称，则从map中获取对应GPU的功率
+            if (!gpu_device_name.empty())
+            {
+                auto iter = theApp.m_all_gpu_power.find(gpu_device_name);
+                if (iter != theApp.m_all_gpu_power.end())
+                {
+                    str_value = CCommon::PowerToString(iter->second, *cfg_data);
+                }
+                else
+                {
+                    // 如果找不到该GPU，显示0
+                    str_value = CCommon::PowerToString(0.0f, *cfg_data);
+                }
+            }
+            else if (theApp.m_all_gpu_power.empty())
             {
                 str_value = CCommon::PowerToString(theApp.m_gpu_power, *cfg_data);
             }

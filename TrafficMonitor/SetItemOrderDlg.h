@@ -22,6 +22,10 @@ public:
     void SetPluginDisplayItem(const StringSet& plugin_item);
     const StringSet& GetPluginDisplayItem() const;
 
+    // 设置/获取GPU功率启用项
+    void SetGpuPowerEnabledItems(const StringSet& gpu_items);
+    const StringSet& GetGpuPowerEnabledItems() const;
+
     // 对话框数据
 #ifdef AFX_DESIGN_TIME
     enum { IDD = IDD_SELECT_ORDER_DIALOG };
@@ -32,6 +36,7 @@ private:
     CCheckListBox m_list_ctrl;
     DisplayItemSet m_display_item;        //要显示的内置项目
     StringSet m_plugin_item;            //要显示的插件项目
+    StringSet m_gpu_power_enabled_items;  //已启用功率显示的GPU名称列表
     std::vector<CommonDisplayItem> m_all_displayed_item;    //在列表中显示的所有项目
 
 protected:

@@ -13,9 +13,33 @@ CTaskbarItemOrderHelper::CTaskbarItemOrderHelper(bool displayed_only)
 
 void CTaskbarItemOrderHelper::Init()
 {
+    m_all_item_in_default_order.clear();
+    
+    // 遍历所有内置显示项和插件显示项
     for (const auto& item : theApp.m_plugins.AllDisplayItemsWithPlugins())
     {
-        m_all_item_in_default_order.push_back(item);
+        // 对于GPU功率项，如果启用了GPU监控且有多个GPU，则为每个GPU创建独立的显示项
+        if (!item.IsPlugin() && item.ItemType() == TDI_GPU_POWER && 
+            theApp.m_general_data.IsHardwareEnable(HI_GPU) && 
+            !theApp.m_all_gpu_power.empty())
+        {
+            // 为每个GPU创建独立的显示项
+            for (const auto& gpu_pair : theApp.m_all_gpu_power)
+            {
+                m_all_item_in_default_order.push_back(CommonDisplayItem(TDI_GPU_POWER, gpu_pair.first));
+            }
+        }
+        else
+        {
+            m_all_item_in_default_order.push_back(item);
+        }
+    }
+    
+    // 保存当前的GPU名称列表
+    m_last_gpu_names.clear();
+    for (const auto& gpu_pair : theApp.m_all_gpu_power)
+    {
+        m_last_gpu_names.insert(gpu_pair.first);
     }
 }
 
@@ -94,6 +118,13 @@ bool CTaskbarItemOrderHelper::IsItemDisplayed(CommonDisplayItem item)
             displayed = false;
         if ((item == TDI_GPU_POWER) && !theApp.m_general_data.IsHardwareEnable(HI_GPU))
             displayed = false;
+        // 对于GPU功率项，只要GPU监控启用就显示，不检查gpu_power_enabled_items
+        // gpu_power_enabled_items只用于控制实际绘制时是否显示
+        // if (item.IsGpuPowerItem())
+        // {
+        //     if (!theApp.m_general_data.gpu_power_enabled_items.Contains(item.GetGpuDeviceName()))
+        //         displayed = false;
+        // }
         if ((item == TDI_GPU_TEMP) && !theApp.m_general_data.IsHardwareEnable(HI_GPU))
             displayed = false;
         if ((item == TDI_HDD_TEMP) && !theApp.m_general_data.IsHardwareEnable(HI_HDD))
@@ -105,10 +136,26 @@ bool CTaskbarItemOrderHelper::IsItemDisplayed(CommonDisplayItem item)
     return displayed;
 }
 
+void CTaskbarItemOrderHelper::RefreshGpuPowerItems()
+{
+    // 检测GPU列表是否发生变化
+    std::set<std::wstring> current_gpu_names;
+    for (const auto& gpu_pair : theApp.m_all_gpu_power)
+    {
+        current_gpu_names.insert(gpu_pair.first);
+    }
+    
+    if (current_gpu_names != m_last_gpu_names)
+    {
+        // GPU列表发生变化，重新初始化
+        Init();
+    }
+}
+
 void CTaskbarItemOrderHelper::NormalizeItemOrder()
 {
-    //检查是否有超出范围的序号
-    int item_num = static_cast<int>(theApp.m_plugins.AllDisplayItemsWithPlugins().size());
+    //检查是否有超出范围的序号（使用m_all_item_in_default_order的大小）
+    int item_num = static_cast<int>(m_all_item_in_default_order.size());
     for (auto iter = m_item_order.begin(); iter != m_item_order.end();)
     {
         if (*iter < 0 || *iter >= item_num)

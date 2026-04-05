@@ -388,6 +388,8 @@ struct GeneralSettingData
             hardware_monitor_item &= ~item_type;
     }
 
+    StringSet gpu_power_enabled_items;  //已启用功率显示的GPU名称列表
+
     StringSet connections_hide;     //用于保存哪些网络要从“选择网络连接”子菜单项中隐藏
 };
 

@@ -84,6 +84,12 @@ BOOL CDisplayTextSettingDlg::OnInitDialog()
         CString item_name = iter->first.GetItemName();
         if (!item_name.IsEmpty())
         {
+            // 如果是抽象的GPU功率基础项（没有指定GPU设备名称），不显示
+            if (iter->first.ItemType() == TDI_GPU_POWER && iter->first.GetGpuDeviceName().empty())
+            {
+                continue;
+            }
+            
             int index = m_list_ctrl.GetItemCount();
             m_list_ctrl.InsertItem(index, item_name);
             m_list_ctrl.SetItemText(index, 1, iter->second.c_str());

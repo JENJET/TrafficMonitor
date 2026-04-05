@@ -204,7 +204,7 @@ void CTaskBarDlg::ShowInfo(CDC* pDC)
                 if (iter->IsPlugin())
                     DrawPluginItem(draw, iter->PluginItem(), item_rect, iter->item_width.label_width);
                 else
-                    DrawDisplayItem(draw, iter->ItemType(), item_rect, iter->item_width.label_width);
+                    DrawDisplayItem(draw, *iter, item_rect, iter->item_width.label_width);
             }
             else //非水平排列时，每两个一组显示
             {
@@ -226,11 +226,11 @@ void CTaskBarDlg::ShowInfo(CDC* pDC)
                     if (last_iter->IsPlugin())
                         DrawPluginItem(draw, last_iter->PluginItem(), item_rect_up, last_item_width.label_width);
                     else
-                        DrawDisplayItem(draw, last_iter->ItemType(), item_rect_up, last_item_width.label_width);
+                        DrawDisplayItem(draw, *last_iter, item_rect_up, last_item_width.label_width);
                     if (iter->IsPlugin())
                         DrawPluginItem(draw, iter->PluginItem(), item_rect, iter->item_width.label_width);
                     else
-                        DrawDisplayItem(draw, iter->ItemType(), item_rect, iter->item_width.label_width);
+                        DrawDisplayItem(draw, *iter, item_rect, iter->item_width.label_width);
                 }
                 //要绘制的项目为奇数时绘制最后一个
                 else if (item_count % 2 == 1 && index == item_count - 1)
@@ -241,7 +241,7 @@ void CTaskBarDlg::ShowInfo(CDC* pDC)
                     if (iter->IsPlugin())
                         DrawPluginItem(draw, iter->PluginItem(), item_rect, iter->item_width.label_width, true);
                     else
-                        DrawDisplayItem(draw, iter->ItemType(), item_rect, iter->item_width.label_width, true);
+                        DrawDisplayItem(draw, *iter, item_rect, iter->item_width.label_width, true);
                 }
             }
         }
@@ -255,7 +255,7 @@ void CTaskBarDlg::ShowInfo(CDC* pDC)
             if (iter->IsPlugin())
                 DrawPluginItem(draw, iter->PluginItem(), item_rect, iter->item_width.label_width);
             else
-                DrawDisplayItem(draw, iter->ItemType(), item_rect, iter->item_width.label_width);
+                DrawDisplayItem(draw, *iter, item_rect, iter->item_width.label_width);
         }
         index++;
         last_iter = iter;
@@ -269,8 +269,9 @@ void CTaskBarDlg::ShowInfo(CDC* pDC)
 #endif
 }
 
-void CTaskBarDlg::DrawDisplayItem(IDrawCommon& drawer, DisplayItem type, CRect rect, int label_width, bool vertical)
+void CTaskBarDlg::DrawDisplayItem(IDrawCommon& drawer, const CommonDisplayItem& item, CRect rect, int label_width, bool vertical)
 {
+    DisplayItem type = item.ItemType();
     m_item_rects[type] = rect;
     //设置要绘制的文本颜色
     COLORREF label_color{};
@@ -379,7 +380,11 @@ void CTaskBarDlg::DrawDisplayItem(IDrawCommon& drawer, DisplayItem type, CRect r
     //绘制标签
     if (label_width > 0)
     {
-        wstring str_label = theApp.m_taskbar_data.disp_str.GetConst(type);
+        wstring str_label = theApp.m_taskbar_data.disp_str.GetConst(item);
+        if (str_label.empty())
+        {
+            str_label = item.GetItemName() + ": ";
+        }
         drawer.DrawWindowText(rect_label, str_label.c_str(), label_color, (vertical ? IDrawCommon::Alignment::CENTER : IDrawCommon::Alignment::LEFT));
     }
 
@@ -387,7 +392,7 @@ void CTaskBarDlg::DrawDisplayItem(IDrawCommon& drawer, DisplayItem type, CRect r
     IDrawCommon::Alignment value_alignment{ theApp.m_taskbar_data.value_right_align ? IDrawCommon::Alignment::RIGHT : IDrawCommon::Alignment::LEFT };      //数值的对齐方式
     if (vertical)
         value_alignment = IDrawCommon::Alignment::CENTER;
-    CString str_value = CommonDisplayItem(type).GetItemValueText(false);
+    CString str_value = item.GetItemValueText(false);
     drawer.DrawWindowText(rect_value, str_value, text_color, value_alignment);
 }
 
@@ -781,25 +786,28 @@ CString CTaskBarDlg::GetMouseTipsInfo()
             temp.Format(_T("\r\n%s: %s"), CCommon::LoadText(IDS_CPU_TEMPERATURE), CCommon::TemperatureToString(theApp.m_cpu_temperature, theApp.m_taskbar_data));
             tip_info += temp;
         }
-        if (!IsItemShow(TDI_GPU_POWER) && !theApp.m_all_gpu_power.empty())
+        // GPU功率tooltip：只显示未在任务栏上显示的GPU项
+        if (!theApp.m_all_gpu_power.empty())
         {
-            if (theApp.m_all_gpu_power.size() == 1)
+            for (const auto& gpu : theApp.m_all_gpu_power)
             {
-                temp.Format(_T("\r\n%s: %s"), CCommon::LoadText(IDS_GPU_POWER), CCommon::PowerToString(theApp.m_all_gpu_power.begin()->second, theApp.m_taskbar_data));
-                tip_info += temp;
-            }
-            else
-            {
-                // 多个 GPU 时，显示所有 GPU 的功率
-                for (const auto& gpu : theApp.m_all_gpu_power)
+                CommonDisplayItem gpu_item(TDI_GPU_POWER, gpu.first);
+                
+                // 如果该GPU功率项已在任务栏上显示（在启用列表中），则不在tooltip中重复显示
+                if (theApp.m_general_data.gpu_power_enabled_items.Contains(gpu.first))
                 {
-                    CString device_name = gpu.first.c_str();
-                    int pos = device_name.ReverseFind(L' ');
-                    if (pos != -1)
-                        device_name = device_name.Mid(pos + 1);
-                    temp.Format(_T("\r\n%s (%s): %s"), CCommon::LoadText(IDS_GPU_POWER), device_name, CCommon::PowerToString(gpu.second, theApp.m_taskbar_data));
-                    tip_info += temp;
+                    continue;
                 }
+                
+                // 获取标签文本：优先使用disp_str中的自定义文本，如果为空则使用默认文本
+                wstring label_text = theApp.m_taskbar_data.disp_str.GetConst(gpu_item);
+                if (label_text.empty())
+                {
+                    label_text = gpu_item.GetItemName() + _T(": ");
+                }
+                
+                temp.Format(_T("\r\n%s%s"), label_text.c_str(), CCommon::PowerToString(gpu.second, theApp.m_taskbar_data));
+                tip_info += temp;
             }
         }
         if (!IsItemShow(TDI_GPU_TEMP) && theApp.m_gpu_temperature > 0)
@@ -861,8 +869,14 @@ void CTaskBarDlg::CalculateWindowSize()
     m_pDC->SelectObject(&m_font);
     //计算标签和数值的宽度
     //const auto& item_map = theApp.m_taskbar_data.disp_str.GetAllItems();
+    
+    // 首先处理所有内置显示项和插件项
     for (auto iter = theApp.m_plugins.AllDisplayItemsWithPlugins().begin(); iter != theApp.m_plugins.AllDisplayItemsWithPlugins().end(); ++iter)
     {
+        // 对于GPU功率项，跳过，后面单独处理
+        if (!iter->IsPlugin() && iter->ItemType() == TDI_GPU_POWER)
+            continue;
+            
         if (iter->IsPlugin())
         {
             auto plugin = iter->PluginItem();
@@ -871,7 +885,7 @@ void CTaskBarDlg::CalculateWindowSize()
                 //标签宽度
                 int& label_width{ item_widths[*iter].label_width };
                 //数值宽度
-                int& value_width{ item_widths[plugin].value_width };
+                int& value_width{ item_widths[*iter].value_width };
                 if (plugin->IsCustomDraw())
                 {
                     label_width = 0;
@@ -879,7 +893,7 @@ void CTaskBarDlg::CalculateWindowSize()
                 }
                 else
                 {
-                    CString lable_text = theApp.m_taskbar_data.disp_str.GetConst(plugin).c_str();
+                    CString lable_text = theApp.m_taskbar_data.disp_str.GetConst(*iter).c_str();
                     label_width = m_pDC->GetTextExtent(lable_text).cx;
                     value_width = m_pDC->GetTextExtent(plugin->GetItemValueSampleText()).cx;
                 }
@@ -894,8 +908,34 @@ void CTaskBarDlg::CalculateWindowSize()
             item_widths[*iter].value_width = m_pDC->GetTextExtent(sample_str).cx;
         }
     }
+    
+    // 单独处理GPU功率项：为每个启用的GPU创建宽度信息
+    if (theApp.m_general_data.IsHardwareEnable(HI_GPU))
+    {
+        for (const auto& gpu_pair : theApp.m_all_gpu_power)
+        {
+            CommonDisplayItem gpu_power_item(TDI_GPU_POWER, gpu_pair.first);
+            // 只处理已启用的GPU
+            if (theApp.m_general_data.gpu_power_enabled_items.Contains(gpu_pair.first))
+            {
+                // 获取标签文本：优先使用disp_str中的自定义文本，如果为空则使用默认文本
+                wstring label_text = theApp.m_taskbar_data.disp_str.GetConst(gpu_power_item);
+                if (label_text.empty())
+                {
+                    label_text = gpu_power_item.GetItemName() + ": ";
+                }
+                
+                //标签宽度
+                item_widths[gpu_power_item].label_width = m_pDC->GetTextExtent(label_text.c_str()).cx;
+                //数值宽度
+                CString sample_str = gpu_power_item.GetItemValueSampleText(false);
+                item_widths[gpu_power_item].value_width = m_pDC->GetTextExtent(sample_str).cx;
+            }
+        }
+    }
 
     auto item_order{ theApp.m_taskbar_data.item_order.GetAllDisplayItemsWithOrder() };
+    
     for (const auto& item : item_order)
     {
         if (theApp.IsTaksbarItemDisplayed(item))

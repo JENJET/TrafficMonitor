@@ -121,10 +121,21 @@ void CSettingsHelper::LoadDisplayStr(const wchar_t* AppName, DispStrings& disp_s
     for (auto display_item : AllDisplayItems)
     {
         std::wstring str{ CommonDisplayItem(display_item).DefaultString(is_main_window)};
-        bool exist = GetString(AppName, CommonDisplayItem(display_item).GetItemIniKeyName(), str);
+        bool exist = GetString(AppName, CommonDisplayItem(display_item).GetItemIniKeyName().c_str(), str);
         //主窗口只读取配置文件中存在的项，任务栏窗口读取所有项
         if (!is_main_window || exist)
             disp_str.Get(display_item) = str;
+    }
+    
+    // 加载GPU功率项的配置（动态项）
+    for (const auto& gpu_pair : theApp.m_all_gpu_power)
+    {
+        CommonDisplayItem gpu_item(TDI_GPU_POWER, gpu_pair.first);
+        std::wstring str{ gpu_item.DefaultString(is_main_window) };
+        bool exist = GetString(AppName, gpu_item.GetItemIniKeyName().c_str(), str);
+        //主窗口只读取配置文件中存在的项，任务栏窗口读取所有项
+        if (!is_main_window || exist)
+            disp_str.Get(gpu_item) = str;
     }
 }
 
@@ -134,7 +145,20 @@ void CSettingsHelper::SaveDisplayStr(const wchar_t* AppName, const DispStrings& 
     {
         if (!item.first.IsPlugin())
         {
-            WriteString(AppName, item.first.GetItemIniKeyName(), item.second);
+            WriteString(AppName, item.first.GetItemIniKeyName().c_str(), item.second);
+        }
+    }
+    
+    // 保存GPU功率项的配置（动态项）
+    for (const auto& gpu_pair : theApp.m_all_gpu_power)
+    {
+        CommonDisplayItem gpu_item(TDI_GPU_POWER, gpu_pair.first);
+        // 只保存配置文件中已存在的项，或者disp_str中有的项
+        std::wstring str;
+        if (GetString(AppName, gpu_item.GetItemIniKeyName().c_str(), str) || 
+            disp_str.GetAllItems().find(gpu_item) != disp_str.GetAllItems().end())
+        {
+            WriteString(AppName, gpu_item.GetItemIniKeyName().c_str(), disp_str.GetConst(gpu_item));
         }
     }
 }

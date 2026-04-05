@@ -51,6 +51,25 @@ const StringSet& CSetItemOrderDlg::GetPluginDisplayItem() const
     return m_plugin_item;
 }
 
+void CSetItemOrderDlg::SetGpuPowerEnabledItems(const StringSet& gpu_items)
+{
+    // 根据当前实际存在的GPU列表，重新生成启用的GPU列表
+    // 只保留当前存在的GPU名称，移除已不存在的GPU
+    m_gpu_power_enabled_items.FromVector(std::vector<std::wstring>{});
+    for (const auto& gpu_pair : theApp.m_all_gpu_power)
+    {
+        if (gpu_items.Contains(gpu_pair.first))
+        {
+            m_gpu_power_enabled_items.data().insert(gpu_pair.first);
+        }
+    }
+}
+
+const StringSet& CSetItemOrderDlg::GetGpuPowerEnabledItems() const
+{
+    return m_gpu_power_enabled_items;
+}
+
 void CSetItemOrderDlg::DoDataExchange(CDataExchange* pDX)
 {
     CBaseDialog::DoDataExchange(pDX);
@@ -92,6 +111,12 @@ void CSetItemOrderDlg::ShowItem()
     m_all_displayed_item = m_item_order.GetAllDisplayItemsWithOrder();
     for (const auto& item : m_all_displayed_item)
     {
+        // 如果是抽象的GPU功率基础项（没有指定GPU设备名称），不显示
+        if (item.ItemType() == TDI_GPU_POWER && item.GetGpuDeviceName().empty())
+        {
+            continue;
+        }
+        
         m_list_ctrl.AddString(CTaskbarItemOrderHelper::GetItemDisplayName(item));
         if (GetItemChecked(item))
             m_list_ctrl.SetCheck(m_list_ctrl.GetCount() - 1, TRUE);
@@ -122,6 +147,11 @@ bool CSetItemOrderDlg::GetItemChecked(CommonDisplayItem item)
     }
     else
     {
+        // 对于GPU功率项，检查该GPU是否在启用列表中
+        if (item.IsGpuPowerItem())
+        {
+            return m_gpu_power_enabled_items.Contains(item.GetGpuDeviceName());
+        }
         return m_display_item.Contains(item.ItemType());
     }
     return false;
@@ -136,10 +166,18 @@ void CSetItemOrderDlg::SaveItemChecked(CommonDisplayItem item, bool checked)
     }
     else
     {
-        if (checked)
-            m_display_item.Add(item.ItemType());
+        // 对于GPU功率项，更新m_gpu_power_enabled_items
+        if (item.IsGpuPowerItem())
+        {
+            m_gpu_power_enabled_items.SetStrContained(item.GetGpuDeviceName(), checked);
+        }
         else
-            m_display_item.Remove(item.ItemType());
+        {
+            if (checked)
+                m_display_item.Add(item.ItemType());
+            else
+                m_display_item.Remove(item.ItemType());
+        }
     }
 }
 

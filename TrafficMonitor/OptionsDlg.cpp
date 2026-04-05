@@ -54,6 +54,9 @@ BOOL COptionsDlg::OnInitDialog()
     m_tab2_dlg.Create(IDD_TASKBAR_SETTINGS_DIALOG, &m_tab);
     m_tab3_dlg.Create(IDD_GENERAL_SETTINGS_DIALOG, &m_tab);
 
+    // 将全局配置数据复制到对话框的局部副本
+    m_tab2_dlg.m_data = theApp.m_taskbar_data;
+
     //保存子对话框
     m_tab_vect.push_back(&m_tab1_dlg);
     m_tab_vect.push_back(&m_tab2_dlg);
@@ -106,6 +109,9 @@ void COptionsDlg::OnOK()
     m_tab1_dlg.OnOK();
     m_tab2_dlg.OnOK();
     m_tab3_dlg.OnOK();
+
+    // 将对话框的局部副本复制回全局配置数据
+    theApp.m_taskbar_data = m_tab2_dlg.m_data;
 
     CBaseDialog::OnOK();
 }

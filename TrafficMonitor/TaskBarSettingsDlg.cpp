@@ -827,7 +827,7 @@ void CTaskBarSettingsDlg::OnBnClickedAutoSetBackColorCheck()
 void CTaskBarSettingsDlg::OnBnClickedDisplayTextSettingButton()
 {
     // TODO: 在此添加控件通知处理程序代码
-    CDisplayTextSettingDlg dlg(m_data.disp_str);
+    CDisplayTextSettingDlg dlg(m_data.disp_str, false);
     dlg.DoModal();
 }
 
@@ -853,11 +853,13 @@ void CTaskBarSettingsDlg::OnBnClickedSetOrderButton()
     dlg.SetItemOrder(m_data.item_order.GetItemOrderConst());
     dlg.SetDisplayItem(m_data.display_item);
     dlg.SetPluginDisplayItem(m_data.plugin_display_item);
+    dlg.SetGpuPowerEnabledItems(theApp.m_general_data.gpu_power_enabled_items);
     if (dlg.DoModal() == IDOK)
     {
         m_data.item_order.SetOrder(dlg.GetItemOrder());
         m_data.display_item = dlg.GetDisplayItem();
         m_data.plugin_display_item = dlg.GetPluginDisplayItem();
+        theApp.m_general_data.gpu_power_enabled_items = dlg.GetGpuPowerEnabledItems();
     }
 }
 
