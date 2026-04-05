@@ -549,7 +549,17 @@ void CMainWndSettingsDlg::OnBnClickedBrowseButton()
 
 void CMainWndSettingsDlg::OnBnClickedDisplayTextSettingButton()
 {
-    // TODO: 在此添加控件通知处理程序代码
+    // 确保disp_str中包含所有当前GPU的项
+    for (const auto& gpu_pair : theApp.m_all_gpu_power)
+    {
+        CommonDisplayItem gpu_item(TDI_GPU_POWER, gpu_pair.first);
+        // 如果disp_str中还没有该项，添加默认值
+        if (m_data.disp_str.GetAllItems().find(gpu_item) == m_data.disp_str.GetAllItems().end())
+        {
+            m_data.disp_str.Get(gpu_item) = gpu_item.DefaultString(true);
+        }
+    }
+    
     CDisplayTextSettingDlg dlg(m_data.disp_str, true);
     dlg.DoModal();
 }
