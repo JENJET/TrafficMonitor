@@ -31,6 +31,16 @@ const std::vector<int>& CSetItemOrderDlg::GetItemOrder() const
     return m_item_order.GetItemOrderConst();
 }
 
+void CSetItemOrderDlg::SetItemOrderHelper(const CTaskbarItemOrderHelper& item_order)
+{
+    m_item_order = item_order;
+}
+
+const CTaskbarItemOrderHelper& CSetItemOrderDlg::GetItemOrderHelper() const
+{
+    return m_item_order;
+}
+
 void CSetItemOrderDlg::SetDisplayItem(const DisplayItemSet& display_item)
 {
     m_display_item = display_item;
@@ -53,16 +63,9 @@ const StringSet& CSetItemOrderDlg::GetPluginDisplayItem() const
 
 void CSetItemOrderDlg::SetGpuPowerEnabledItems(const StringSet& gpu_items)
 {
-    // 根据当前实际存在的GPU列表，重新生成启用的GPU列表
-    // 只保留当前存在的GPU名称，移除已不存在的GPU
-    m_gpu_power_enabled_items.FromVector(std::vector<std::wstring>{});
-    for (const auto& gpu_pair : theApp.m_all_gpu_power)
-    {
-        if (gpu_items.Contains(gpu_pair.first))
-        {
-            m_gpu_power_enabled_items.data().insert(gpu_pair.first);
-        }
-    }
+    // 直接赋值，保留所有配置
+    // 即使某些GPU当前不存在，也保留其配置，等GPU出现时会自动生效
+    m_gpu_power_enabled_items = gpu_items;
 }
 
 const StringSet& CSetItemOrderDlg::GetGpuPowerEnabledItems() const

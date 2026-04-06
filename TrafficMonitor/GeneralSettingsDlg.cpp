@@ -36,6 +36,7 @@ void CGeneralSettingsDlg::CheckTaskbarDisplayItem()
     if (!theApp.m_general_data.IsHardwareEnable(HI_GPU))
     {
         theApp.m_taskbar_data.display_item.Remove(TDI_GPU_TEMP);
+        theApp.m_taskbar_data.display_item.Remove(TDI_GPU_POWER);
     }
     if (!theApp.m_general_data.IsHardwareEnable(HI_HDD))
     {

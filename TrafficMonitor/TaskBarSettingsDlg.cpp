@@ -860,13 +860,13 @@ void CTaskBarSettingsDlg::OnBnClickedSetOrderButton()
 {
     // TODO: 在此添加控件通知处理程序代码
     CSetItemOrderDlg dlg;
-    dlg.SetItemOrder(m_data.item_order.GetItemOrderConst());
+    dlg.SetItemOrderHelper(m_data.item_order);
     dlg.SetDisplayItem(m_data.display_item);
     dlg.SetPluginDisplayItem(m_data.plugin_display_item);
     dlg.SetGpuPowerEnabledItems(theApp.m_general_data.gpu_power_enabled_items);
     if (dlg.DoModal() == IDOK)
     {
-        m_data.item_order.SetOrder(dlg.GetItemOrder());
+		m_data.item_order = dlg.GetItemOrderHelper();
         m_data.display_item = dlg.GetDisplayItem();
         m_data.plugin_display_item = dlg.GetPluginDisplayItem();
         theApp.m_general_data.gpu_power_enabled_items = dlg.GetGpuPowerEnabledItems();

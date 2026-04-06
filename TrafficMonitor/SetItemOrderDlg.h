@@ -15,6 +15,9 @@ public:
     void SetItemOrder(const std::vector<int>& item_order);
     const std::vector<int>& GetItemOrder() const;
 
+    void SetItemOrderHelper(const CTaskbarItemOrderHelper& item_order);    
+    const CTaskbarItemOrderHelper& GetItemOrderHelper() const;
+
     //设置/获取显示项目
     void SetDisplayItem(const DisplayItemSet& display_item);
     DisplayItemSet GetDisplayItem() const;

@@ -274,6 +274,7 @@ void CTrafficMonitorApp::LoadConfig()
     // 读取已启用功率显示的GPU名称列表
     std::vector<std::wstring> gpu_power_enabled;
     ini.GetStringList(L"task_bar", L"gpu_power_enabled_items", gpu_power_enabled, std::vector<std::wstring>{});
+    
     m_general_data.gpu_power_enabled_items.FromVector(gpu_power_enabled);
     m_taskbar_data.auto_save_taskbar_color_settings_to_preset = ini.GetBool(L"task_bar", L"auto_save_taskbar_color_settings_to_preset", true);
 

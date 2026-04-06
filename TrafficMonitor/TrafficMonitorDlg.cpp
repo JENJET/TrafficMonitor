@@ -1508,7 +1508,7 @@ void CTrafficMonitorDlg::DoMonitorAcquisition()
         }
         if (current_gpu_names != last_gpu_names) {
             // GPU列表发生变化，刷新显示项
-            theApp.m_taskbar_data.item_order.RefreshGpuPowerItems();
+           theApp.m_taskbar_data.item_order.RefreshGpuPowerItems();
             last_gpu_names = current_gpu_names;
             
             // 重新加载GPU功率项的配置到disp_str中
@@ -1529,10 +1529,11 @@ void CTrafficMonitorDlg::DoMonitorAcquisition()
                 theApp.m_taskbar_data.disp_str.Get(gpu_item) = str;
             }
             
-            // 重新计算任务栏窗口宽度
+            // 重新计算任务栏窗口宽度和位置
             if (IsTaskbarWndValid())
             {
-                m_tBarDlg->WidthChanged();
+                m_tBarDlg->AdjustWindowPos(true);
+                m_tBarDlg->Invalidate(FALSE);
             }
         }
         //获取CPU温度

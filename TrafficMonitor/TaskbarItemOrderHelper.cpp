@@ -26,7 +26,8 @@ void CTaskbarItemOrderHelper::Init()
             // 为每个GPU创建独立的显示项
             for (const auto& gpu_pair : theApp.m_all_gpu_power)
             {
-                m_all_item_in_default_order.push_back(CommonDisplayItem(TDI_GPU_POWER, gpu_pair.first));
+                CommonDisplayItem gpu_item(TDI_GPU_POWER, gpu_pair.first);
+                m_all_item_in_default_order.push_back(gpu_item);
             }
         }
         else
@@ -142,6 +143,8 @@ void CTaskbarItemOrderHelper::RefreshGpuPowerItems()
     {
         // GPU列表发生变化，重新初始化
         Init();
+        // 规范化索引顺序，确保新添加的GPU项有对应的索引
+        NormalizeItemOrder();
     }
 }
 
