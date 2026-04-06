@@ -301,3 +301,4 @@ __pycache__/
 *.diagsession
 /TrafficMonitor/Win32
 *.metaproj
+/build_log.txt
